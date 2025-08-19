@@ -1,7 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 
+interface StatsData {
+  totalUsers: number;
+  gigSeekers: number;
+  gigPosters: number;
+  gigsPosted: number;
+  totalPayout: number;
+}
+
 export default function Stats() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading } = useQuery<StatsData>({
     queryKey: ['/api/stats'],
   });
 

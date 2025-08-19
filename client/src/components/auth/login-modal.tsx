@@ -115,7 +115,7 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
               <Checkbox
                 id="remember"
                 checked={rememberMe}
-                onCheckedChange={setRememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
                 data-testid="checkbox-remember"
               />
               <Label htmlFor="remember" className="text-sm">
