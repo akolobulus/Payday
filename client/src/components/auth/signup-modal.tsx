@@ -154,26 +154,26 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
           {/* Basic Information */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
               <Input
                 id="firstName"
                 placeholder="John"
                 data-testid="input-first-name"
                 {...register("firstName")}
-                className="mt-1"
+                className="mt-1 transition-all duration-200 border-gray-300 focus:border-payday-blue focus:ring-2 focus:ring-payday-blue/20 hover:border-gray-400"
               />
               {errors.firstName && (
                 <p className="text-sm text-destructive mt-1">{errors.firstName.message}</p>
               )}
             </div>
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
               <Input
                 id="lastName"
                 placeholder="Doe"
                 data-testid="input-last-name"
                 {...register("lastName")}
-                className="mt-1"
+                className="mt-1 transition-all duration-200 border-gray-300 focus:border-payday-blue focus:ring-2 focus:ring-payday-blue/20 hover:border-gray-400"
               />
               {errors.lastName && (
                 <p className="text-sm text-destructive mt-1">{errors.lastName.message}</p>
@@ -182,14 +182,14 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
           </div>
 
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="john@example.com"
               data-testid="input-email"
               {...register("email")}
-              className="mt-1"
+              className="mt-1 transition-all duration-200 border-gray-300 focus:border-payday-blue focus:ring-2 focus:ring-payday-blue/20 hover:border-gray-400"
             />
             {errors.email && (
               <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
@@ -197,14 +197,14 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
           </div>
 
           <div>
-            <Label htmlFor="phone">Phone Number</Label>
+            <Label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number</Label>
             <Input
               id="phone"
               type="tel"
               placeholder="+234 xxx xxx xxxx"
               data-testid="input-phone"
               {...register("phone")}
-              className="mt-1"
+              className="mt-1 transition-all duration-200 border-gray-300 focus:border-payday-blue focus:ring-2 focus:ring-payday-blue/20 hover:border-gray-400"
             />
             {errors.phone && (
               <p className="text-sm text-destructive mt-1">{errors.phone.message}</p>
@@ -258,13 +258,13 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
           {/* Poster-specific fields */}
           {userType === 'poster' && (
             <div data-testid="poster-fields">
-              <Label htmlFor="businessName">Business/Organization Name</Label>
+              <Label htmlFor="businessName" className="text-sm font-medium text-gray-700">Business/Organization Name</Label>
               <Input
                 id="businessName"
                 placeholder="Your business name"
                 data-testid="input-business-name"
                 {...register("businessName")}
-                className="mt-1"
+                className="mt-1 transition-all duration-200 border-gray-300 focus:border-payday-blue focus:ring-2 focus:ring-payday-blue/20 hover:border-gray-400"
               />
               {errors.businessName && (
                 <p className="text-sm text-destructive mt-1">{errors.businessName.message}</p>
@@ -273,14 +273,14 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
           )}
 
           <div>
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
             <Input
               id="password"
               type="password"
               placeholder="Create a strong password"
               data-testid="input-password"
               {...register("password")}
-              className="mt-1"
+              className="mt-1 transition-all duration-200 border-gray-300 focus:border-payday-blue focus:ring-2 focus:ring-payday-blue/20 hover:border-gray-400"
             />
             {errors.password && (
               <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
@@ -288,14 +288,14 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
           </div>
 
           <div>
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm Password</Label>
             <Input
               id="confirmPassword"
               type="password"
               placeholder="Confirm your password"
               data-testid="input-confirm-password"
               {...register("confirmPassword")}
-              className="mt-1"
+              className="mt-1 transition-all duration-200 border-gray-300 focus:border-payday-blue focus:ring-2 focus:ring-payday-blue/20 hover:border-gray-400"
             />
             {errors.confirmPassword && (
               <p className="text-sm text-destructive mt-1">{errors.confirmPassword.message}</p>
@@ -325,11 +325,18 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
 
           <Button
             type="submit"
-            className="w-full bg-payday-blue hover:bg-blue-700"
+            className="w-full bg-payday-blue hover:bg-blue-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg disabled:hover:scale-100 disabled:hover:shadow-none"
             disabled={signupMutation.isPending}
             data-testid="button-signup-submit"
           >
-            {signupMutation.isPending ? "Creating Account..." : "Create Account"}
+            {signupMutation.isPending ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Creating Account...
+              </div>
+            ) : (
+              "Create Account"
+            )}
           </Button>
         </form>
 

@@ -66,16 +66,29 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
           <p className="text-center text-gray-600">Sign in to your Payday account</p>
         </DialogHeader>
 
+        {/* Demo Accounts Section */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <h4 className="text-sm font-semibold text-payday-blue mb-2">Try Demo Accounts:</h4>
+          <div className="space-y-2 text-xs">
+            <div>
+              <strong>Gig Poster:</strong> officialarikpa@gmail.com / 123456789
+            </div>
+            <div>
+              <strong>Gig Seeker:</strong> bulusakolo6@gmail.com / 123456789
+            </div>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
             <Input
               id="email"
               type="email"
               placeholder="Enter your email"
               data-testid="input-email"
               {...register("email")}
-              className="mt-1"
+              className="mt-1 transition-all duration-200 border-gray-300 focus:border-payday-blue focus:ring-2 focus:ring-payday-blue/20 hover:border-gray-400"
             />
             {errors.email && (
               <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
@@ -83,14 +96,14 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
           </div>
 
           <div>
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
             <Input
               id="password"
               type="password"
               placeholder="Enter your password"
               data-testid="input-password"
               {...register("password")}
-              className="mt-1"
+              className="mt-1 transition-all duration-200 border-gray-300 focus:border-payday-blue focus:ring-2 focus:ring-payday-blue/20 hover:border-gray-400"
             />
             {errors.password && (
               <p className="text-sm text-destructive mt-1">{errors.password.message}</p>
@@ -121,11 +134,18 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
 
           <Button
             type="submit"
-            className="w-full bg-payday-blue hover:bg-blue-700"
+            className="w-full bg-payday-blue hover:bg-blue-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg disabled:hover:scale-100 disabled:hover:shadow-none"
             disabled={loginMutation.isPending}
             data-testid="button-login-submit"
           >
-            {loginMutation.isPending ? "Signing In..." : "Sign In"}
+            {loginMutation.isPending ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Signing In...
+              </div>
+            ) : (
+              "Sign In"
+            )}
           </Button>
         </form>
 
