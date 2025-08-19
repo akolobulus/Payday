@@ -12,38 +12,48 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend Architecture
 - **React SPA**: Built with React 18+ using TypeScript for type safety
-- **Routing**: Wouter for lightweight client-side routing
+- **Routing**: Wouter for lightweight client-side routing with dashboard pages (/dashboard/seeker, /dashboard/poster)
 - **State Management**: TanStack Query (React Query) for server state management with optimistic updates
 - **UI Framework**: Radix UI primitives with custom Tailwind CSS styling using the shadcn/ui design system
 - **Form Handling**: React Hook Form with Zod validation for type-safe form validation
 - **Build Tool**: Vite for fast development and optimized production builds
-- **Styling**: Tailwind CSS with custom color scheme (Payday Blue #1f5cf4, Payday Yellow #ffde00)
+- **Styling**: Tailwind CSS with custom color scheme (Payday Blue #0029F7, Payday Yellow #FDF00B)
+- **AI Integration**: Gemini AI for job matching, recommendations, and gig analysis
 
 ### Backend Architecture
 - **Server**: Express.js with TypeScript for REST API endpoints
-- **Authentication**: Currently using simple email/password with in-memory session storage
-- **Data Layer**: Currently using in-memory storage (MemStorage class) with interfaces designed for easy migration to persistent storage
+- **Authentication**: Simple email/password with automatic dashboard redirection based on user type
+- **Data Layer**: In-memory storage (MemStorage class) with full CRUD operations for users and gigs
 - **Validation**: Shared Zod schemas between frontend and backend for consistent validation
+- **AI Services**: Gemini API integration for personalized recommendations and job matching
 - **Development**: Hot module replacement via Vite integration in development mode
 
 ### Data Storage Architecture
-- **Database Schema**: Designed for PostgreSQL using Drizzle ORM with type-safe queries
+- **Database Schema**: Extended to include gigs table with comprehensive gig management
 - **User Management**: Support for both gig seekers and gig posters with role-based fields
-- **Current Implementation**: In-memory storage for development/testing
+- **Gig Management**: Complete gig lifecycle management (create, apply, assign, complete)
+- **Current Implementation**: In-memory storage with test data for immediate functionality
 - **Migration Ready**: Drizzle configuration and schema prepared for PostgreSQL deployment
 
 ### Authentication & Authorization
-- **Current State**: Basic email/password authentication with server-side session management
-- **User Types**: Dual-role system supporting 'seeker' and 'poster' user types
-- **Session Management**: Express sessions with in-memory storage
+- **Current State**: Basic email/password authentication with automatic dashboard routing
+- **User Types**: Dual-role system with separate dashboards for 'seeker' and 'poster' user types
+- **Session Management**: Simple in-memory user tracking for development
+- **Post-Login Flow**: Automatic redirection to role-appropriate dashboard after authentication
 - **Security**: Password hashing not yet implemented (development phase)
 
-### UI/UX Architecture
-- **Design System**: Custom implementation of shadcn/ui with Nigerian youth-focused branding
-- **Responsive Design**: Mobile-first approach with breakpoint-based layouts
-- **Component Structure**: Modular React components with clear separation between sections
-- **Accessibility**: Radix UI primitives provide built-in accessibility features
-- **Animation**: CSS-based animations for interactive elements and page transitions
+### AI Integration Architecture
+- **Gemini Integration**: AI-powered job matching and recommendations using Google's Gemini API
+- **Job Matching**: Intelligent compatibility scoring between user skills and gig requirements
+- **Personalized Recommendations**: AI-generated gig suggestions based on user profile and preferences
+- **Gig Analysis**: Automatic categorization and skill extraction from gig descriptions
+- **Nigerian Context**: AI prompts optimized for Nigerian gig economy and same-day payment focus
+
+### Dashboard Architecture
+- **Gig Seeker Dashboard**: Browse gigs, AI recommendations, application tracking, profile management
+- **Gig Poster Dashboard**: Create gigs, manage posted gigs, analytics, business profile
+- **Real-time Updates**: Optimistic updates and cache invalidation for immediate UI feedback
+- **Responsive Design**: Mobile-first approach optimized for Nigerian youth usage patterns
 
 ## External Dependencies
 

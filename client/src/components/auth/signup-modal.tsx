@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,7 @@ type SignupFormData = z.infer<typeof signupFormSchema>;
 export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [userType, setUserType] = useState<'seeker' | 'poster'>('seeker');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
@@ -66,6 +68,10 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
       queryClient.invalidateQueries({ queryKey: ['/api/stats'] });
       reset();
       onClose();
+      
+      // Redirect to appropriate dashboard
+      const dashboardPath = data.user.userType === 'seeker' ? '/dashboard/seeker' : '/dashboard/poster';
+      setLocation(dashboardPath);
     },
     onError: (error: any) => {
       toast({
