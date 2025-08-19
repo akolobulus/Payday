@@ -13,9 +13,8 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
-            <div className="flex items-center space-x-3 mb-4">
-              <img src={paydayLogoPath} alt="Payday Logo" className="w-8 h-8" />
-              <span className="text-2xl font-bold">Payday</span>
+            <div className="flex items-center mb-4">
+              <img src={paydayLogoPath} alt="Payday Logo" className="w-10 h-10" />
             </div>
             <p className="text-gray-400 mb-4 max-w-md">
               Empowering Nigerian youth through instant-paying gigs. From broke days to paydays, we're here to change your financial story.
