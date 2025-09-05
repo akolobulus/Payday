@@ -10,7 +10,7 @@ window.Pages = {
         <nav id="navbar" class="navbar">
             <div class="nav-container">
                 <div class="nav-brand">
-                    <img src="/attached_assets/20250819_104458-removebg-preview_1755623157202.png" alt="Payday Logo" class="nav-logo">
+                    <img src="attached_assets/20250819_104458-removebg-preview_1755623157202.png" alt="Payday Logo" class="nav-logo">
                     <span class="nav-title">Payday</span>
                 </div>
                 
@@ -414,7 +414,7 @@ window.Pages = {
                 <div class="footer-content grid grid-4" style="margin-bottom: 2rem;">
                     <div class="footer-brand">
                         <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                            <img src="/attached_assets/20250819_104458-removebg-preview_1755623157202.png" alt="Payday Logo" style="width: 32px; height: 32px;">
+                            <img src="attached_assets/20250819_104458-removebg-preview_1755623157202.png" alt="Payday Logo" style="width: 32px; height: 32px;">
                             <h3 style="margin: 0; color: white;">Payday</h3>
                         </div>
                         <p style="color: var(--gray-300); margin-bottom: 1rem;">Turn your skills into instant income</p>
@@ -452,6 +452,201 @@ window.Pages = {
                 </div>
             </div>
         </footer>
+    `,
+
+    seekerDashboard: () => `
+        <div style="min-height: 100vh; background: var(--gray-50);">
+            <!-- Navigation -->
+            <nav class="navbar">
+                <div class="nav-container">
+                    <div class="nav-brand">
+                        <img src="attached_assets/20250819_104458-removebg-preview_1755623157202.png" alt="Payday Logo" class="nav-logo">
+                        <span class="nav-title">Payday</span>
+                    </div>
+                    <div class="nav-links">
+                        <button class="btn btn-outline" data-nav="/">Home</button>
+                        <button class="btn btn-outline" onclick="window.Auth.logout()">Logout</button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Dashboard Content -->
+            <div style="padding-top: 80px;">
+                <div class="container" style="padding: 2rem 1rem;">
+                    <div class="dashboard-header" style="margin-bottom: 2rem;">
+                        <h1>Gig Seeker Dashboard</h1>
+                        <p>Find and apply to instant-paying gigs</p>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="grid grid-4" style="margin-bottom: 2rem;">
+                        <div class="card" style="padding: 1.5rem; text-align: center;">
+                            <h3 style="color: var(--payday-blue); margin: 0;">5</h3>
+                            <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">Applied Gigs</p>
+                        </div>
+                        <div class="card" style="padding: 1.5rem; text-align: center;">
+                            <h3 style="color: var(--success); margin: 0;">2</h3>
+                            <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">Active Gigs</p>
+                        </div>
+                        <div class="card" style="padding: 1.5rem; text-align: center;">
+                            <h3 style="color: var(--payday-blue); margin: 0;">₦15,500</h3>
+                            <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">This Week</p>
+                        </div>
+                        <div class="card" style="padding: 1.5rem; text-align: center;">
+                            <h3 style="color: var(--payday-yellow); margin: 0;">4.8★</h3>
+                            <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">Rating</p>
+                        </div>
+                    </div>
+
+                    <!-- Available Gigs -->
+                    <div class="card" style="padding: 2rem;">
+                        <h2 style="margin-bottom: 1.5rem;">Recommended Gigs</h2>
+                        <div class="space-y-4">
+                            <div class="gig-card" style="border: 1px solid var(--gray-200); padding: 1.5rem; border-radius: 0.5rem; background: white;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                    <div style="flex: 1;">
+                                        <h3 style="margin: 0 0 0.5rem 0;">Data Entry Assistant</h3>
+                                        <p style="margin: 0; color: var(--gray-600);">TechCorp Nigeria • Lagos</p>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <p style="margin: 0; font-weight: 600; color: var(--payday-blue);">₦8,500</p>
+                                        <p style="margin: 0; font-size: 0.875rem; color: var(--gray-600);">3 hours</p>
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <span class="badge badge-success">98% Match</span>
+                                    <span class="badge badge-gray">Data Entry</span>
+                                    <span class="badge badge-gray">Excel</span>
+                                </div>
+                                <p style="margin-bottom: 1rem; color: var(--gray-700);">Looking for accurate data entry work. Must be detail-oriented...</p>
+                                <button class="btn btn-primary">Apply Now</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `,
+
+    posterDashboard: () => `
+        <div style="min-height: 100vh; background: var(--gray-50);">
+            <!-- Navigation -->
+            <nav class="navbar">
+                <div class="nav-container">
+                    <div class="nav-brand">
+                        <img src="attached_assets/20250819_104458-removebg-preview_1755623157202.png" alt="Payday Logo" class="nav-logo">
+                        <span class="nav-title">Payday</span>
+                    </div>
+                    <div class="nav-links">
+                        <button class="btn btn-outline" data-nav="/">Home</button>
+                        <button class="btn btn-outline" onclick="window.Auth.logout()">Logout</button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Dashboard Content -->
+            <div style="padding-top: 80px;">
+                <div class="container" style="padding: 2rem 1rem;">
+                    <div class="dashboard-header" style="margin-bottom: 2rem;">
+                        <h1>Gig Poster Dashboard</h1>
+                        <p>Manage your gigs and find great talent</p>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="grid grid-2" style="margin-bottom: 2rem;">
+                        <button class="btn btn-primary btn-lg" style="height: 60px;">
+                            + Post New Gig
+                        </button>
+                        <button class="btn btn-outline btn-lg" style="height: 60px;">
+                            Browse Talent
+                        </button>
+                    </div>
+
+                    <!-- Posted Gigs -->
+                    <div class="card" style="padding: 2rem;">
+                        <h2 style="margin-bottom: 1.5rem;">Your Posted Gigs</h2>
+                        <div class="space-y-4">
+                            <div class="gig-card" style="border: 1px solid var(--gray-200); padding: 1.5rem; border-radius: 0.5rem; background: white;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                    <div style="flex: 1;">
+                                        <h3 style="margin: 0 0 0.5rem 0;">Social Media Content Creator</h3>
+                                        <p style="margin: 0; color: var(--gray-600);">Posted 2 days ago</p>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <p style="margin: 0; font-weight: 600; color: var(--payday-blue);">₦12,000</p>
+                                        <span class="badge badge-warning">In Progress</span>
+                                    </div>
+                                </div>
+                                <p style="margin-bottom: 1rem; color: var(--gray-700);">3 applications • Assigned to Kemi A.</p>
+                                <button class="btn btn-outline">View Details</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `,
+
+    profile: () => `
+        <div style="min-height: 100vh; background: var(--gray-50);">
+            <!-- Navigation -->
+            <nav class="navbar">
+                <div class="nav-container">
+                    <div class="nav-brand">
+                        <img src="attached_assets/20250819_104458-removebg-preview_1755623157202.png" alt="Payday Logo" class="nav-logo">
+                        <span class="nav-title">Payday</span>
+                    </div>
+                    <div class="nav-links">
+                        <button class="btn btn-outline" data-nav="/">Home</button>
+                        <button class="btn btn-outline" onclick="window.Auth.logout()">Logout</button>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Profile Content -->
+            <div style="padding-top: 80px;">
+                <div class="container" style="padding: 2rem 1rem;">
+                    <h1>Profile</h1>
+                    <p>Manage your account and preferences</p>
+                </div>
+            </div>
+        </div>
+    `,
+
+    search: () => `
+        <div style="min-height: 100vh; background: var(--gray-50);">
+            <div class="container" style="padding: 2rem 1rem;">
+                <h1>Search Gigs</h1>
+                <p>Find the perfect opportunities</p>
+            </div>
+        </div>
+    `,
+
+    help: () => `
+        <div style="min-height: 100vh; background: var(--gray-50);">
+            <div class="container" style="padding: 2rem 1rem;">
+                <h1>Help Center</h1>
+                <p>Get support and find answers</p>
+            </div>
+        </div>
+    `,
+
+    about: () => `
+        <div style="min-height: 100vh; background: var(--gray-50);">
+            <div class="container" style="padding: 2rem 1rem;">
+                <h1>About Payday</h1>
+                <p>Learn more about our mission</p>
+            </div>
+        </div>
+    `,
+
+    gigDetails: (gigId) => `
+        <div style="min-height: 100vh; background: var(--gray-50);">
+            <div class="container" style="padding: 2rem 1rem;">
+                <h1>Gig Details</h1>
+                <p>Gig ID: ${gigId}</p>
+            </div>
+        </div>
     `,
 
     notFound: () => `

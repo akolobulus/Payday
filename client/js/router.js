@@ -143,50 +143,39 @@ class PaydayRouter {
 
     renderHome() {
         const container = document.getElementById('app-container');
-        container.innerHTML = window.Pages.home();
-        
-        // Initialize home page functionality
-        this.initHomePage();
+        if (window.Pages && window.Pages.home) {
+            container.innerHTML = window.Pages.home();
+            // Initialize home page functionality
+            this.initHomePage();
+        } else {
+            container.innerHTML = '<div>Loading...</div>';
+            console.error('Pages.home not available');
+        }
     }
 
     renderSeekerDashboard() {
         const container = document.getElementById('app-container');
         container.innerHTML = window.Pages.seekerDashboard();
-        
-        // Initialize seeker dashboard
-        window.Dashboards.initSeekerDashboard();
     }
 
     renderPosterDashboard() {
         const container = document.getElementById('app-container');
         container.innerHTML = window.Pages.posterDashboard();
-        
-        // Initialize poster dashboard
-        window.Dashboards.initPosterDashboard();
     }
 
     renderProfile() {
         const container = document.getElementById('app-container');
         container.innerHTML = window.Pages.profile();
-        
-        // Initialize profile page
-        window.Profile.init();
     }
 
     renderGigDetails(gigId) {
         const container = document.getElementById('app-container');
         container.innerHTML = window.Pages.gigDetails(gigId);
-        
-        // Initialize gig details
-        window.GigDetails.init(gigId);
     }
 
     renderSearch() {
         const container = document.getElementById('app-container');
         container.innerHTML = window.Pages.search();
-        
-        // Initialize search functionality
-        window.Search.init();
     }
 
     renderHelp() {
