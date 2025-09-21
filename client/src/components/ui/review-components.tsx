@@ -56,7 +56,7 @@ export function ReviewForm({ gig, revieweeId, revieweeName, onSuccess }: ReviewF
   });
 
   const submitReviewMutation = useMutation({
-    mutationFn: (data: ReviewFormData) => apiRequest('/api/reviews', 'POST', data),
+    mutationFn: (data: ReviewFormData) => apiRequest('POST', '/api/reviews', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/reviews'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user', revieweeId, 'rating'] });

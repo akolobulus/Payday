@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import GigSeekerDashboard from "@/pages/gig-seeker-dashboard";
 import GigPosterDashboard from "@/pages/gig-poster-dashboard";
+import VideoCallPage from "@/pages/video-call";
 
 function Router() {
   return (
@@ -14,6 +15,9 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/dashboard/seeker" component={GigSeekerDashboard} />
       <Route path="/dashboard/poster" component={GigPosterDashboard} />
+      <Route path="/video-call/:roomId">
+        {(params) => <VideoCallPage params={params} />}
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

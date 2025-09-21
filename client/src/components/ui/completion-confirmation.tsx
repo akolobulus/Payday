@@ -40,14 +40,14 @@ export function CompletionConfirmation({ gig, currentUser, onStatusUpdate }: Com
   const { data: completionStatus, refetch } = useQuery<CompletionStatus>({
     queryKey: ['/api/gigs', gig.id, 'completion-status'],
     queryFn: async () => {
-      const response = await apiRequest(`/api/gigs/${gig.id}/completion-status`, 'GET');
+      const response = await apiRequest('GET', `/api/gigs/${gig.id}/completion-status`);
       return response.json();
     },
   });
 
   const initiateMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(`/api/gigs/${gig.id}/initiate-completion`, 'POST');
+      const response = await apiRequest('POST', `/api/gigs/${gig.id}/initiate-completion`);
       return response.json();
     },
     onSuccess: () => {
@@ -70,7 +70,7 @@ export function CompletionConfirmation({ gig, currentUser, onStatusUpdate }: Com
 
   const confirmMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest(`/api/gigs/${gig.id}/confirm-completion`, 'POST');
+      const response = await apiRequest('POST', `/api/gigs/${gig.id}/confirm-completion`);
       return response.json();
     },
     onSuccess: (data) => {

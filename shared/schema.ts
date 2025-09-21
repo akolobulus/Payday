@@ -55,6 +55,20 @@ export const completionConfirmations = pgTable("completion_confirmations", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const videoCallSessions = pgTable("video_call_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gigId: varchar("gig_id").notNull().references(() => gigs.id),
+  roomId: text("room_id").notNull().unique(),
+  initiatedBy: varchar("initiated_by").notNull().references(() => users.id), // user who started the call
+  posterId: varchar("poster_id").notNull().references(() => users.id),
+  seekerId: varchar("seeker_id").notNull().references(() => users.id),
+  status: text("status").notNull().default("pending"), // 'pending', 'active', 'ended', 'failed'
+  startedAt: timestamp("started_at"),
+  endedAt: timestamp("ended_at"),
+  duration: integer("duration"), // duration in seconds
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
@@ -92,6 +106,13 @@ export const insertCompletionConfirmationSchema = createInsertSchema(completionC
   gigId: true,
 });
 
+export const insertVideoCallSessionSchema = createInsertSchema(videoCallSessions).pick({
+  gigId: true,
+  roomId: true,
+  posterId: true,
+  seekerId: true,
+});
+
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -101,8 +122,10 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertGig = z.infer<typeof insertGigSchema>;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type InsertCompletionConfirmation = z.infer<typeof insertCompletionConfirmationSchema>;
+export type InsertVideoCallSession = z.infer<typeof insertVideoCallSessionSchema>;
 export type User = typeof users.$inferSelect;
 export type Gig = typeof gigs.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
 export type CompletionConfirmation = typeof completionConfirmations.$inferSelect;
+export type VideoCallSession = typeof videoCallSessions.$inferSelect;
 export type LoginCredentials = z.infer<typeof loginSchema>;

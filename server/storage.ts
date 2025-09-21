@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation } from "@shared/schema";
+import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation, type VideoCallSession, type InsertVideoCallSession } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -31,6 +31,14 @@ export interface IStorage {
   getCompletionConfirmation(gigId: string): Promise<CompletionConfirmation | undefined>;
   updateCompletionConfirmation(gigId: string, userType: 'seeker' | 'poster'): Promise<boolean>;
   checkMutualConfirmation(gigId: string): Promise<boolean>;
+  
+  // Video call session management
+  createVideoCallSession(session: InsertVideoCallSession & { initiatedBy: string }): Promise<VideoCallSession>;
+  getVideoCallSession(id: string): Promise<VideoCallSession | undefined>;
+  getVideoCallSessionByRoomId(roomId: string): Promise<VideoCallSession | undefined>;
+  getVideoCallSessionsByGig(gigId: string): Promise<VideoCallSession[]>;
+  getVideoCallSessionsByUser(userId: string): Promise<VideoCallSession[]>;
+  updateVideoCallSessionStatus(roomId: string, status: string, startedAt?: Date, endedAt?: Date, duration?: number): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -38,12 +46,14 @@ export class MemStorage implements IStorage {
   private gigs: Map<string, Gig>;
   private reviews: Map<string, Review>;
   private completionConfirmations: Map<string, CompletionConfirmation>;
+  private videoCallSessions: Map<string, VideoCallSession>;
 
   constructor() {
     this.users = new Map();
     this.gigs = new Map();
     this.reviews = new Map();
     this.completionConfirmations = new Map();
+    this.videoCallSessions = new Map();
     this.initializeTestUsers();
     this.initializeTestGigs();
     this.initializeTestReviews();
@@ -396,6 +406,62 @@ export class MemStorage implements IStorage {
   async checkMutualConfirmation(gigId: string): Promise<boolean> {
     const confirmation = await this.getCompletionConfirmation(gigId);
     return confirmation ? (!!confirmation.confirmedBySeeker && !!confirmation.confirmedByPoster) : false;
+  }
+
+  // Video call session methods
+  async createVideoCallSession(insertSession: InsertVideoCallSession & { initiatedBy: string }): Promise<VideoCallSession> {
+    const id = randomUUID();
+    const session: VideoCallSession = {
+      ...insertSession,
+      id,
+      status: "pending",
+      startedAt: null,
+      endedAt: null,
+      duration: null,
+      createdAt: new Date(),
+    };
+    
+    this.videoCallSessions.set(id, session);
+    return session;
+  }
+
+  async getVideoCallSession(id: string): Promise<VideoCallSession | undefined> {
+    return this.videoCallSessions.get(id);
+  }
+
+  async getVideoCallSessionByRoomId(roomId: string): Promise<VideoCallSession | undefined> {
+    return Array.from(this.videoCallSessions.values()).find(session => session.roomId === roomId);
+  }
+
+  async getVideoCallSessionsByGig(gigId: string): Promise<VideoCallSession[]> {
+    return Array.from(this.videoCallSessions.values()).filter(session => session.gigId === gigId);
+  }
+
+  async getVideoCallSessionsByUser(userId: string): Promise<VideoCallSession[]> {
+    return Array.from(this.videoCallSessions.values()).filter(
+      session => session.posterId === userId || session.seekerId === userId || session.initiatedBy === userId
+    );
+  }
+
+  async updateVideoCallSessionStatus(
+    roomId: string, 
+    status: string, 
+    startedAt?: Date, 
+    endedAt?: Date, 
+    duration?: number
+  ): Promise<boolean> {
+    const session = await this.getVideoCallSessionByRoomId(roomId);
+    if (!session) {
+      return false;
+    }
+
+    session.status = status;
+    if (startedAt) session.startedAt = startedAt;
+    if (endedAt) session.endedAt = endedAt;
+    if (duration !== undefined) session.duration = duration;
+
+    this.videoCallSessions.set(session.id, session);
+    return true;
   }
 }
 

@@ -1,9 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema, insertVideoCallSessionSchema } from "@shared/schema";
 import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
 import { z } from "zod";
+import { nanoid } from "nanoid";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
@@ -480,6 +481,250 @@ export async function registerRoutes(app: Express): Promise<Server> {
         canInitiateCompletion: gig.status === "assigned",
         canConfirmCompletion: ["pending_completion", "awaiting_mutual_confirmation"].includes(gig.status),
         canSubmitReviews: isMutuallyConfirmed
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Video Call Session routes
+  app.post("/api/video-calls/create", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId } = req.body;
+      
+      // Verify the gig exists and user is participant
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      // Check if user is either the poster or assigned seeker
+      if (gig.posterId !== currentUser.id && gig.seekerId !== currentUser.id) {
+        return res.status(403).json({ message: "Not authorized to create video call for this gig" });
+      }
+
+      // Check if gig is in assigned status (has a seeker)
+      if (!gig.seekerId || gig.status !== "assigned") {
+        return res.status(400).json({ message: "Gig must be assigned to a seeker before video call can be initiated" });
+      }
+
+      // Check if there's already an active video call session for this gig
+      const existingSession = await storage.getVideoCallSessionsByGig(gigId);
+      const activeSession = existingSession.find(session => session.status === "active" || session.status === "pending");
+      
+      if (activeSession) {
+        return res.json({
+          message: "Video call session already exists",
+          session: activeSession,
+          roomId: activeSession.roomId
+        });
+      }
+
+      // Generate unique room ID
+      const roomId = `room-${nanoid(12)}`;
+      
+      const sessionData = {
+        gigId,
+        roomId,
+        posterId: gig.posterId,
+        seekerId: gig.seekerId!,
+        initiatedBy: currentUser.id
+      };
+
+      const session = await storage.createVideoCallSession(sessionData);
+      
+      res.status(201).json({
+        message: "Video call session created",
+        session,
+        roomId: session.roomId
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/video-calls/:roomId/join", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { roomId } = req.params;
+      
+      const session = await storage.getVideoCallSessionByRoomId(roomId);
+      if (!session) {
+        return res.status(404).json({ message: "Video call session not found" });
+      }
+
+      // Verify user is authorized to join this call
+      if (session.posterId !== currentUser.id && session.seekerId !== currentUser.id) {
+        return res.status(403).json({ message: "Not authorized to join this video call" });
+      }
+
+      // Update session status to active if this is the first join
+      if (session.status === "pending") {
+        await storage.updateVideoCallSessionStatus(roomId, "active", new Date());
+      }
+
+      res.json({
+        message: "Joined video call successfully",
+        session,
+        roomId: session.roomId,
+        canJoin: true
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/video-calls/:roomId/end", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { roomId } = req.params;
+      const { duration } = req.body; // duration in seconds
+      
+      const session = await storage.getVideoCallSessionByRoomId(roomId);
+      if (!session) {
+        return res.status(404).json({ message: "Video call session not found" });
+      }
+
+      // Verify user is authorized to end this call
+      if (session.posterId !== currentUser.id && session.seekerId !== currentUser.id) {
+        return res.status(403).json({ message: "Not authorized to end this video call" });
+      }
+
+      // Update session status to ended
+      const endedAt = new Date();
+      await storage.updateVideoCallSessionStatus(roomId, "ended", undefined, endedAt, duration);
+
+      res.json({
+        message: "Video call ended successfully",
+        endedAt,
+        duration
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/video-calls/:roomId/status", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { roomId } = req.params;
+      
+      const session = await storage.getVideoCallSessionByRoomId(roomId);
+      if (!session) {
+        return res.status(404).json({ message: "Video call session not found" });
+      }
+
+      // Verify user is authorized to view this call status
+      if (session.posterId !== currentUser.id && session.seekerId !== currentUser.id) {
+        return res.status(403).json({ message: "Not authorized to view this video call" });
+      }
+
+      // Get participant info
+      const poster = await storage.getUser(session.posterId);
+      const seeker = await storage.getUser(session.seekerId);
+
+      res.json({
+        session,
+        participants: {
+          poster: poster ? { 
+            id: poster.id, 
+            name: `${poster.firstName} ${poster.lastName}`,
+            userType: poster.userType 
+          } : null,
+          seeker: seeker ? { 
+            id: seeker.id, 
+            name: `${seeker.firstName} ${seeker.lastName}`,
+            userType: seeker.userType 
+          } : null
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/video-calls/history", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const sessions = await storage.getVideoCallSessionsByUser(currentUser.id);
+      
+      // Get additional gig and participant info for each session
+      const sessionsWithDetails = await Promise.all(
+        sessions.map(async (session) => {
+          const gig = await storage.getGig(session.gigId);
+          const poster = await storage.getUser(session.posterId);
+          const seeker = await storage.getUser(session.seekerId);
+          
+          return {
+            ...session,
+            gig: gig ? { id: gig.id, title: gig.title, category: gig.category } : null,
+            participants: {
+              poster: poster ? { 
+                id: poster.id, 
+                name: `${poster.firstName} ${poster.lastName}`,
+                userType: poster.userType 
+              } : null,
+              seeker: seeker ? { 
+                id: seeker.id, 
+                name: `${seeker.firstName} ${seeker.lastName}`,
+                userType: seeker.userType 
+              } : null
+            }
+          };
+        })
+      );
+
+      res.json(sessionsWithDetails);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/gigs/:gigId/video-calls", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId } = req.params;
+      
+      // Verify the gig exists and user is participant
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      // Check if user is either the poster or assigned seeker
+      if (gig.posterId !== currentUser.id && gig.seekerId !== currentUser.id) {
+        return res.status(403).json({ message: "Not authorized to view video calls for this gig" });
+      }
+
+      const sessions = await storage.getVideoCallSessionsByGig(gigId);
+      
+      res.json({
+        gigId,
+        canInitiateCall: gig.seekerId && gig.status === "assigned",
+        hasActiveCall: sessions.some(s => s.status === "active" || s.status === "pending"),
+        sessions
       });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });

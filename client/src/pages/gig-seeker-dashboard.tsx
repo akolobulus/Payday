@@ -7,8 +7,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
-import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, DollarSign } from "lucide-react";
+import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, DollarSign, Video, PhoneCall } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 import type { User, Gig } from "@shared/schema";
 
 interface JobMatchResult {
@@ -30,6 +32,8 @@ interface GigRecommendation {
 
 export default function GigSeekerDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
   
   const { data: user } = useQuery<User>({
     queryKey: ['/api/user/profile']
@@ -48,11 +52,34 @@ export default function GigSeekerDashboard() {
     enabled: !!user?.skills?.length
   });
 
+  const { data: videoCallHistory } = useQuery<any[]>({
+    queryKey: ['/api/video-calls/history'],
+    enabled: !!user?.id
+  });
+
   const applyToGigMutation = useMutation({
-    mutationFn: (gigId: string) => apiRequest(`/api/gigs/${gigId}/apply`, 'POST'),
+    mutationFn: (gigId: string) => apiRequest('POST', `/api/gigs/${gigId}/apply`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/gigs/available'] });
       queryClient.invalidateQueries({ queryKey: ['/api/gigs/my-applications'] });
+    }
+  });
+
+  const createVideoCallMutation = useMutation({
+    mutationFn: (gigId: string) => apiRequest('/api/video-calls/create', 'POST', { gigId }),
+    onSuccess: (data) => {
+      toast({
+        title: "Video call created",
+        description: "Video call room created successfully. Redirecting...",
+      });
+      setLocation(`/video-call/${data.roomId}`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to create video call",
+        description: error.message || "Could not create video call session",
+        variant: "destructive",
+      });
     }
   });
 
@@ -180,10 +207,11 @@ export default function GigSeekerDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="browse" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="browse" data-testid="tab-browse">Browse Gigs</TabsTrigger>
             <TabsTrigger value="recommendations" data-testid="tab-recommendations">AI Recommendations</TabsTrigger>
             <TabsTrigger value="applications" data-testid="tab-applications">My Applications</TabsTrigger>
+            <TabsTrigger value="video-calls" data-testid="tab-video-calls">Video Calls</TabsTrigger>
             <TabsTrigger value="reviews" data-testid="tab-reviews">Reviews</TabsTrigger>
             <TabsTrigger value="profile" data-testid="tab-profile">Profile</TabsTrigger>
           </TabsList>
@@ -375,6 +403,30 @@ export default function GigSeekerDashboard() {
                       <span className="text-sm text-gray-500">{gig.estimatedDuration}</span>
                     </div>
                     
+                    {/* Video Call Button for assigned gigs */}
+                    {gig.status === 'assigned' && gig.seekerId === user?.id && (
+                      <div className="space-y-2 border-t pt-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Video Interview Available
+                          </span>
+                          <Button
+                            size="sm"
+                            onClick={() => createVideoCallMutation.mutate(gig.id)}
+                            disabled={createVideoCallMutation.isPending}
+                            className="flex items-center space-x-2"
+                            data-testid={`button-start-call-${gig.id}`}
+                          >
+                            <Video className="h-4 w-4" />
+                            <span>{createVideoCallMutation.isPending ? 'Starting...' : 'Start Video Call'}</span>
+                          </Button>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Connect with the gig poster to discuss details before starting work
+                        </p>
+                      </div>
+                    )}
+
                     {/* Completion Confirmation Component for assigned and completion states */}
                     {['assigned', 'pending_completion', 'awaiting_mutual_confirmation'].includes(gig.status) && user && (
                       <div className="space-y-2 border-t pt-3">
@@ -421,6 +473,74 @@ export default function GigSeekerDashboard() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="video-calls" className="space-y-4">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Video Call History</h3>
+                <Badge variant="secondary" data-testid="video-calls-count">
+                  {videoCallHistory?.length || 0} calls
+                </Badge>
+              </div>
+
+              {videoCallHistory && videoCallHistory.length > 0 ? (
+                <div className="space-y-4">
+                  {videoCallHistory.map((call) => (
+                    <Card key={call.id}>
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-2">
+                            <div className="flex items-center space-x-2">
+                              <PhoneCall className="h-4 w-4 text-blue-500" />
+                              <span className="font-medium" data-testid={`call-gig-title-${call.id}`}>
+                                {call.gig?.title || 'Unknown Gig'}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                              <div className="flex items-center space-x-1">
+                                <Clock className="h-3 w-3" />
+                                <span>{new Date(call.createdAt).toLocaleDateString()}</span>
+                              </div>
+                              {call.duration && (
+                                <div className="flex items-center space-x-1">
+                                  <Video className="h-3 w-3" />
+                                  <span>{Math.floor(call.duration / 60)}:{(call.duration % 60).toString().padStart(2, '0')}</span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="text-sm text-gray-500">
+                              With: {call.participants?.poster?.id === user?.id 
+                                ? call.participants?.seeker?.name 
+                                : call.participants?.poster?.name}
+                            </div>
+                          </div>
+                          
+                          <Badge 
+                            variant={call.status === 'ended' ? 'outline' : call.status === 'active' ? 'default' : 'secondary'}
+                            data-testid={`call-status-${call.id}`}
+                          >
+                            {call.status}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card className="p-8 text-center">
+                  <CardContent className="space-y-4">
+                    <Video className="h-12 w-12 text-gray-400 mx-auto" />
+                    <h3 className="text-lg font-semibold">No Video Calls Yet</h3>
+                    <p className="text-gray-500">
+                      Video call history will appear here after you start having video interviews with gig posters.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-4">
