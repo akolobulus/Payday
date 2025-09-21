@@ -30,7 +30,7 @@ export const gigs = pgTable("gigs", {
   skillsRequired: text("skills_required").array().notNull(),
   posterId: varchar("poster_id").notNull().references(() => users.id),
   seekerId: varchar("seeker_id").references(() => users.id), // null when not assigned
-  status: text("status").notNull().default("open"), // 'open', 'assigned', 'completed', 'cancelled'
+  status: text("status").notNull().default("open"), // 'open', 'assigned', 'pending_completion', 'awaiting_mutual_confirmation', 'completed', 'cancelled'
   createdAt: timestamp("created_at").defaultNow(),
   completedAt: timestamp("completed_at"),
 });
@@ -42,6 +42,16 @@ export const reviews = pgTable("reviews", {
   gigId: varchar("gig_id").notNull().references(() => gigs.id),
   rating: integer("rating").notNull(), // 1-5 star rating
   comment: text("comment").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const completionConfirmations = pgTable("completion_confirmations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gigId: varchar("gig_id").notNull().references(() => gigs.id),
+  confirmedBySeeker: boolean("confirmed_by_seeker").default(false),
+  confirmedByPoster: boolean("confirmed_by_poster").default(false),
+  seekerConfirmedAt: timestamp("seeker_confirmed_at"),
+  posterConfirmedAt: timestamp("poster_confirmed_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -78,6 +88,10 @@ export const insertReviewSchema = createInsertSchema(reviews).pick({
   comment: z.string().min(1, "Comment is required").max(500, "Comment must be less than 500 characters"),
 });
 
+export const insertCompletionConfirmationSchema = createInsertSchema(completionConfirmations).pick({
+  gigId: true,
+});
+
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -86,7 +100,9 @@ export const loginSchema = z.object({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertGig = z.infer<typeof insertGigSchema>;
 export type InsertReview = z.infer<typeof insertReviewSchema>;
+export type InsertCompletionConfirmation = z.infer<typeof insertCompletionConfirmationSchema>;
 export type User = typeof users.$inferSelect;
 export type Gig = typeof gigs.$inferSelect;
 export type Review = typeof reviews.$inferSelect;
+export type CompletionConfirmation = typeof completionConfirmations.$inferSelect;
 export type LoginCredentials = z.infer<typeof loginSchema>;

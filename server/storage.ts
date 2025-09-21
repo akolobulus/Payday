@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview } from "@shared/schema";
+import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -25,17 +25,25 @@ export interface IStorage {
   getReviewsByGig(gigId: string): Promise<Review[]>;
   getExistingReview(reviewerId: string, revieweeId: string, gigId: string): Promise<Review | undefined>;
   getUserRating(userId: string): Promise<{ averageRating: number; reviewCount: number }>;
+  
+  // Completion confirmation management
+  createCompletionConfirmation(confirmation: InsertCompletionConfirmation): Promise<CompletionConfirmation>;
+  getCompletionConfirmation(gigId: string): Promise<CompletionConfirmation | undefined>;
+  updateCompletionConfirmation(gigId: string, userType: 'seeker' | 'poster'): Promise<boolean>;
+  checkMutualConfirmation(gigId: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private gigs: Map<string, Gig>;
   private reviews: Map<string, Review>;
+  private completionConfirmations: Map<string, CompletionConfirmation>;
 
   constructor() {
     this.users = new Map();
     this.gigs = new Map();
     this.reviews = new Map();
+    this.completionConfirmations = new Map();
     this.initializeTestUsers();
     this.initializeTestGigs();
     this.initializeTestReviews();
@@ -334,6 +342,60 @@ export class MemStorage implements IStorage {
       averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
       reviewCount: userReviews.length
     };
+  }
+
+  // Completion confirmation methods
+  async createCompletionConfirmation(insertConfirmation: InsertCompletionConfirmation): Promise<CompletionConfirmation> {
+    const id = randomUUID();
+    const confirmation: CompletionConfirmation = {
+      ...insertConfirmation,
+      id,
+      confirmedBySeeker: false,
+      confirmedByPoster: false,
+      seekerConfirmedAt: null,
+      posterConfirmedAt: null,
+      createdAt: new Date(),
+    };
+    
+    this.completionConfirmations.set(id, confirmation);
+    return confirmation;
+  }
+
+  async getCompletionConfirmation(gigId: string): Promise<CompletionConfirmation | undefined> {
+    return Array.from(this.completionConfirmations.values()).find(
+      confirmation => confirmation.gigId === gigId
+    );
+  }
+
+  async updateCompletionConfirmation(gigId: string, userType: 'seeker' | 'poster'): Promise<boolean> {
+    const confirmation = await this.getCompletionConfirmation(gigId);
+    if (!confirmation) {
+      return false;
+    }
+
+    if (userType === 'seeker') {
+      confirmation.confirmedBySeeker = true;
+      confirmation.seekerConfirmedAt = new Date();
+    } else if (userType === 'poster') {
+      confirmation.confirmedByPoster = true;
+      confirmation.posterConfirmedAt = new Date();
+    }
+
+    this.completionConfirmations.set(confirmation.id, confirmation);
+
+    // Check if both parties have confirmed and update gig status
+    if (confirmation.confirmedBySeeker && confirmation.confirmedByPoster) {
+      await this.updateGigStatus(gigId, "completed");
+    } else {
+      await this.updateGigStatus(gigId, "awaiting_mutual_confirmation");
+    }
+
+    return true;
+  }
+
+  async checkMutualConfirmation(gigId: string): Promise<boolean> {
+    const confirmation = await this.getCompletionConfirmation(gigId);
+    return confirmation ? (!!confirmation.confirmedBySeeker && !!confirmation.confirmedByPoster) : false;
   }
 }
 

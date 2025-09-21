@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
+import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, DollarSign } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { User, Gig } from "@shared/schema";
@@ -61,6 +62,30 @@ export default function GigSeekerDashboard() {
       case 'medium': return 'default';
       case 'low': return 'secondary';
       default: return 'default';
+    }
+  };
+
+  const getGigStatusColor = (status: string) => {
+    switch (status) {
+      case 'open': return 'secondary';
+      case 'assigned': return 'default';
+      case 'pending_completion': return 'outline';
+      case 'awaiting_mutual_confirmation': return 'outline';
+      case 'completed': return 'outline';
+      case 'cancelled': return 'destructive';
+      default: return 'secondary';
+    }
+  };
+
+  const getGigStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'open': return 'Open';
+      case 'assigned': return 'In Progress';
+      case 'pending_completion': return 'Pending Completion';
+      case 'awaiting_mutual_confirmation': return 'Awaiting Confirmation';
+      case 'completed': return 'Completed';
+      case 'cancelled': return 'Cancelled';
+      default: return status;
     }
   };
 
@@ -339,8 +364,8 @@ export default function GigSeekerDashboard() {
                       <CardTitle className="text-lg" data-testid={`my-gig-title-${gig.id}`}>
                         {gig.title}
                       </CardTitle>
-                      <Badge variant={gig.status === 'assigned' ? 'default' : 'secondary'}>
-                        {gig.status}
+                      <Badge variant={getGigStatusColor(gig.status)}>
+                        {getGigStatusDisplay(gig.status)}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -349,6 +374,20 @@ export default function GigSeekerDashboard() {
                       <span className="font-bold text-green-600">₦{gig.budget.toLocaleString()}</span>
                       <span className="text-sm text-gray-500">{gig.estimatedDuration}</span>
                     </div>
+                    
+                    {/* Completion Confirmation Component for assigned and completion states */}
+                    {['assigned', 'pending_completion', 'awaiting_mutual_confirmation'].includes(gig.status) && user && (
+                      <div className="space-y-2 border-t pt-3">
+                        <CompletionConfirmation 
+                          gig={gig} 
+                          currentUser={user}
+                          onStatusUpdate={() => {
+                            queryClient.invalidateQueries({ queryKey: ['/api/gigs/my-applications'] });
+                            queryClient.invalidateQueries({ queryKey: ['/api/gigs/available'] });
+                          }}
+                        />
+                      </div>
+                    )}
                     
                     {gig.status === 'completed' && gig.posterId && (
                       <div className="space-y-2 border-t pt-3">

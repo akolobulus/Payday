@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema } from "@shared/schema";
 import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
 import { z } from "zod";
 
@@ -82,27 +82,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(currentUser);
   });
 
-  // Update login to set current user
-  app.post("/api/auth/login", async (req, res) => {
-    try {
-      const credentials = loginSchema.parse(req.body);
-      
-      const user = await storage.getUserByEmail(credentials.email);
-      if (!user || user.password !== credentials.password) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-
-      // Remove password from response and set current user
-      const { password, ...userWithoutPassword } = user;
-      currentUser = userWithoutPassword;
-      res.status(200).json({ user: userWithoutPassword });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
-      }
-      res.status(500).json({ message: "Internal server error" });
-    }
-  });
 
   // Gig routes
   app.get("/api/gigs/available", async (req, res) => {
@@ -285,10 +264,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const reviewData = insertReviewSchema.parse(req.body);
       
-      // Verify the gig exists and is completed
+      // Verify the gig exists and has mutual completion confirmation
       const gig = await storage.getGig(reviewData.gigId);
       if (!gig || gig.status !== 'completed') {
-        return res.status(400).json({ message: "Can only review completed gigs" });
+        return res.status(400).json({ message: "Can only review gigs with mutual completion confirmation" });
+      }
+
+      // Verify mutual completion confirmation exists
+      const isMutuallyConfirmed = await storage.checkMutualConfirmation(reviewData.gigId);
+      if (!isMutuallyConfirmed) {
+        return res.status(400).json({ message: "Both parties must confirm completion before reviews can be submitted" });
       }
 
       // Verify the user was involved in this gig
@@ -367,6 +352,135 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId } = req.params;
       const reviews = await storage.getReviewsByUser(userId);
       res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Completion confirmation routes
+  app.post("/api/gigs/:gigId/initiate-completion", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId } = req.params;
+      
+      // Verify the gig exists and user is involved
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      const isInvolvedInGig = gig.posterId === currentUser.id || gig.seekerId === currentUser.id;
+      if (!isInvolvedInGig) {
+        return res.status(403).json({ message: "Not authorized to initiate completion for this gig" });
+      }
+
+      if (gig.status !== "assigned") {
+        return res.status(400).json({ message: "Can only initiate completion for assigned gigs" });
+      }
+
+      // Check if completion confirmation already exists
+      let confirmation = await storage.getCompletionConfirmation(gigId);
+      
+      if (!confirmation) {
+        // Create new completion confirmation
+        confirmation = await storage.createCompletionConfirmation({ gigId });
+        
+        // Update gig status to pending_completion
+        await storage.updateGigStatus(gigId, "pending_completion");
+      }
+
+      res.status(201).json({ 
+        message: "Completion initiated",
+        confirmation 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/gigs/:gigId/confirm-completion", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId } = req.params;
+      
+      // Verify the gig exists and user is involved
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      const isInvolvedInGig = gig.posterId === currentUser.id || gig.seekerId === currentUser.id;
+      if (!isInvolvedInGig) {
+        return res.status(403).json({ message: "Not authorized to confirm completion for this gig" });
+      }
+
+      // Check if gig is in a confirmable state
+      if (!["pending_completion", "awaiting_mutual_confirmation"].includes(gig.status)) {
+        return res.status(400).json({ message: "Gig is not in a state that allows completion confirmation" });
+      }
+
+      // Get or create completion confirmation
+      let confirmation = await storage.getCompletionConfirmation(gigId);
+      if (!confirmation) {
+        confirmation = await storage.createCompletionConfirmation({ gigId });
+      }
+
+      // Determine user type for this gig
+      const userType = gig.posterId === currentUser.id ? 'poster' : 'seeker';
+      
+      // Check if user has already confirmed
+      const alreadyConfirmed = userType === 'poster' ? confirmation.confirmedByPoster : confirmation.confirmedBySeeker;
+      if (alreadyConfirmed) {
+        return res.status(400).json({ message: "You have already confirmed completion for this gig" });
+      }
+
+      // Update confirmation
+      const success = await storage.updateCompletionConfirmation(gigId, userType);
+      if (!success) {
+        return res.status(500).json({ message: "Failed to update completion confirmation" });
+      }
+
+      // Get updated confirmation and gig status
+      const updatedConfirmation = await storage.getCompletionConfirmation(gigId);
+      const updatedGig = await storage.getGig(gigId);
+
+      res.json({ 
+        message: "Completion confirmed",
+        confirmation: updatedConfirmation,
+        gigStatus: updatedGig?.status,
+        mutuallyConfirmed: updatedConfirmation?.confirmedBySeeker && updatedConfirmation?.confirmedByPoster
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/gigs/:gigId/completion-status", async (req, res) => {
+    try {
+      const { gigId } = req.params;
+      
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      const confirmation = await storage.getCompletionConfirmation(gigId);
+      const isMutuallyConfirmed = await storage.checkMutualConfirmation(gigId);
+
+      res.json({
+        gigStatus: gig.status,
+        confirmation: confirmation || null,
+        mutuallyConfirmed: isMutuallyConfirmed,
+        canInitiateCompletion: gig.status === "assigned",
+        canConfirmCompletion: ["pending_completion", "awaiting_mutual_confirmation"].includes(gig.status),
+        canSubmitReviews: isMutuallyConfirmed
+      });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }

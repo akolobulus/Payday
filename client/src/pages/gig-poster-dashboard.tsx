@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
+import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -101,6 +102,30 @@ export default function GigPosterDashboard() {
       case 'medium': return 'default';
       case 'low': return 'secondary';
       default: return 'default';
+    }
+  };
+
+  const getGigStatusColor = (status: string) => {
+    switch (status) {
+      case 'open': return 'secondary';
+      case 'assigned': return 'default';
+      case 'pending_completion': return 'outline';
+      case 'awaiting_mutual_confirmation': return 'outline';
+      case 'completed': return 'outline';
+      case 'cancelled': return 'destructive';
+      default: return 'secondary';
+    }
+  };
+
+  const getGigStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'open': return 'Open';
+      case 'assigned': return 'In Progress';
+      case 'pending_completion': return 'Pending Completion';
+      case 'awaiting_mutual_confirmation': return 'Awaiting Confirmation';
+      case 'completed': return 'Completed';
+      case 'cancelled': return 'Cancelled';
+      default: return status;
     }
   };
 
@@ -410,8 +435,8 @@ export default function GigPosterDashboard() {
                         {gig.title}
                       </CardTitle>
                       <div className="flex space-x-2">
-                        <Badge variant={getStatusColor(gig.status)}>
-                          {gig.status}
+                        <Badge variant={getGigStatusColor(gig.status)}>
+                          {getGigStatusDisplay(gig.status)}
                         </Badge>
                         <Badge variant={getUrgencyColor(gig.urgency)}>
                           {gig.urgency}
@@ -458,18 +483,18 @@ export default function GigPosterDashboard() {
                       )}
                     </div>
 
-                    {gig.status === 'assigned' && (
-                      <Button 
-                        className="w-full" 
-                        onClick={() => updateGigStatusMutation.mutate({
-                          gigId: gig.id, 
-                          status: 'completed'
-                        })}
-                        disabled={updateGigStatusMutation.isPending}
-                        data-testid={`complete-gig-${gig.id}`}
-                      >
-                        Mark as Completed
-                      </Button>
+                    {/* Completion Confirmation Component for assigned and completion states */}
+                    {['assigned', 'pending_completion', 'awaiting_mutual_confirmation'].includes(gig.status) && user && (
+                      <div className="space-y-2">
+                        <CompletionConfirmation 
+                          gig={gig} 
+                          currentUser={user}
+                          onStatusUpdate={() => {
+                            queryClient.invalidateQueries({ queryKey: ['/api/gigs/posted'] });
+                            queryClient.invalidateQueries({ queryKey: ['/api/gigs/analysis'] });
+                          }}
+                        />
+                      </div>
                     )}
 
                     {gig.status === 'open' && (
