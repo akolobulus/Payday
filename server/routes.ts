@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema, insertVideoCallSessionSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema, insertVideoCallSessionSchema, addPaymentMethodSchema, insertEscrowTransactionSchema } from "@shared/schema";
 import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
 import { z } from "zod";
 import { nanoid } from "nanoid";
@@ -160,13 +160,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { gigId } = req.params;
+      
+      // Check gig exists and is open
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+      
+      if (gig.status !== 'open') {
+        return res.status(400).json({ message: "This gig is no longer available" });
+      }
+
+      // Check if seeker already applied or gig is already assigned
+      if (gig.seekerId) {
+        return res.status(400).json({ message: "This gig is already assigned to a seeker" });
+      }
+
       const success = await storage.applyToGig(gigId, currentUser.id);
       
       if (!success) {
         return res.status(400).json({ message: "Unable to apply to gig" });
       }
 
-      res.json({ message: "Application successful" });
+      res.json({ 
+        message: "Application successful! The poster will review and assign the gig soon.",
+        gigId,
+        status: "application_submitted"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/gigs/:gigId/assign-seeker", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      if (currentUser.userType !== 'poster') {
+        return res.status(403).json({ message: "Only gig posters can assign seekers" });
+      }
+
+      const { gigId } = req.params;
+      const { seekerId } = req.body;
+      
+      if (!seekerId) {
+        return res.status(400).json({ message: "Seeker ID is required" });
+      }
+
+      // Verify gig ownership
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      if (gig.posterId !== currentUser.id) {
+        return res.status(403).json({ message: "You can only assign seekers to your own gigs" });
+      }
+
+      const success = await storage.assignSeekerToGig(gigId, seekerId);
+      
+      if (!success) {
+        return res.status(400).json({ message: "Unable to assign seeker to gig" });
+      }
+
+      res.json({ 
+        message: "Seeker assigned successfully. Please fund the escrow to complete the assignment.",
+        gigId,
+        seekerId,
+        status: "assigned_pending_funding"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/gigs/:gigId/fund-escrow", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      if (currentUser.userType !== 'poster') {
+        return res.status(403).json({ message: "Only gig posters can fund escrow" });
+      }
+
+      const { gigId } = req.params;
+      
+      // Verify gig and assignment
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      if (gig.posterId !== currentUser.id) {
+        return res.status(403).json({ message: "You can only fund escrow for your own gigs" });
+      }
+
+      if (gig.status !== "assigned_pending_funding") {
+        return res.status(400).json({ message: "Gig must have an assigned seeker before funding escrow" });
+      }
+
+      if (!gig.seekerId) {
+        return res.status(400).json({ message: "No seeker assigned to this gig" });
+      }
+
+      // Fund escrow with proper seeker assignment
+      const result = await storage.processEscrowPayment(gigId, currentUser.id, gig.budget, gig.seekerId);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      // Update gig status to assigned now that escrow is funded
+      await storage.updateGigStatus(gigId, "assigned");
+
+      res.json({ 
+        message: "Escrow funded successfully! The gig is now fully assigned.",
+        escrowId: result.escrowId,
+        gigStatus: "assigned"
+      });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
@@ -726,6 +838,521 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hasActiveCall: sessions.some(s => s.status === "active" || s.status === "pending"),
         sessions
       });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Wallet routes
+  app.get("/api/wallet", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      let wallet = await storage.getWalletByUser(currentUser.id);
+      if (!wallet) {
+        // Create wallet if it doesn't exist
+        wallet = await storage.createWallet({ userId: currentUser.id });
+      }
+      
+      res.json(wallet);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/wallet/transactions", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const transactions = await storage.getTransactionsByUser(currentUser.id);
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Payment methods routes
+  app.get("/api/payment-methods", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      const paymentMethods = await storage.getPaymentMethodsByUser(currentUser.id);
+      res.json(paymentMethods);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/payment-methods", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const paymentMethodData = addPaymentMethodSchema.parse(req.body);
+      const paymentMethod = await storage.createPaymentMethod({
+        ...paymentMethodData,
+        userId: currentUser.id,
+      });
+
+      res.status(201).json(paymentMethod);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/payment-methods/:id", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { id } = req.params;
+      const paymentMethod = await storage.getPaymentMethod(id);
+      
+      if (!paymentMethod || paymentMethod.userId !== currentUser.id) {
+        return res.status(404).json({ message: "Payment method not found" });
+      }
+
+      const success = await storage.updatePaymentMethod(id, req.body);
+      if (!success) {
+        return res.status(400).json({ message: "Failed to update payment method" });
+      }
+
+      const updatedPaymentMethod = await storage.getPaymentMethod(id);
+      res.json(updatedPaymentMethod);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.delete("/api/payment-methods/:id", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { id } = req.params;
+      const paymentMethod = await storage.getPaymentMethod(id);
+      
+      if (!paymentMethod || paymentMethod.userId !== currentUser.id) {
+        return res.status(404).json({ message: "Payment method not found" });
+      }
+
+      const success = await storage.deletePaymentMethod(id);
+      if (!success) {
+        return res.status(400).json({ message: "Failed to delete payment method" });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/payment-methods/:id/set-default", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { id } = req.params;
+      const success = await storage.setDefaultPaymentMethod(currentUser.id, id);
+      
+      if (!success) {
+        return res.status(400).json({ message: "Failed to set default payment method" });
+      }
+
+      res.json({ message: "Default payment method updated" });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Escrow routes
+  app.post("/api/escrow/fund-gig", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      if (currentUser.userType !== 'poster') {
+        return res.status(403).json({ message: "Only gig posters can fund escrow" });
+      }
+
+      const { gigId } = req.body;
+      
+      if (!gigId) {
+        return res.status(400).json({ message: "Gig ID is required" });
+      }
+
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      if (gig.posterId !== currentUser.id) {
+        return res.status(403).json({ message: "You can only fund your own gigs" });
+      }
+
+      if (gig.status !== 'open') {
+        return res.status(400).json({ message: "Gig must be open to fund escrow" });
+      }
+
+      const result = await storage.processEscrowPayment(gigId, currentUser.id, gig.budget);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ 
+        message: "Escrow funded successfully", 
+        escrowId: result.escrowId 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/escrow/gig/:gigId", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId } = req.params;
+      const escrow = await storage.getEscrowTransactionByGig(gigId);
+      
+      if (!escrow) {
+        return res.status(404).json({ message: "Escrow transaction not found" });
+      }
+
+      // Check if user is involved in this gig
+      if (escrow.posterId !== currentUser.id && escrow.seekerId !== currentUser.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(escrow);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/escrow/release/:gigId", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId } = req.params;
+      const gig = await storage.getGig(gigId);
+      
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      // Check if both parties have confirmed completion
+      const mutualConfirmation = await storage.checkMutualConfirmation(gigId);
+      if (!mutualConfirmation) {
+        return res.status(400).json({ message: "Both parties must confirm completion before payment release" });
+      }
+
+      const result = await storage.releaseEscrowPayment(gigId);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ message: "Payment released successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/escrow/refund/:gigId", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId } = req.params;
+      const { reason } = req.body;
+      
+      if (!reason) {
+        return res.status(400).json({ message: "Refund reason is required" });
+      }
+
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      // Only poster can initiate refund or admin/system
+      if (gig.posterId !== currentUser.id) {
+        return res.status(403).json({ message: "Only the gig poster can request a refund" });
+      }
+
+      const result = await storage.refundEscrowPayment(gigId, reason);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ message: "Refund processed successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/escrow/transactions", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const userType = currentUser.userType as 'poster' | 'seeker';
+      const escrowTransactions = await storage.getEscrowTransactionsByUser(currentUser.id, userType);
+      
+      res.json(escrowTransactions);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Withdrawal/Payout endpoints
+  app.post("/api/wallet/withdraw", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { amount, paymentMethodId } = req.body;
+      
+      if (!amount || amount <= 0) {
+        return res.status(400).json({ message: "Invalid withdrawal amount" });
+      }
+      
+      if (!paymentMethodId) {
+        return res.status(400).json({ message: "Payment method required" });
+      }
+
+      // Validate payment method
+      const validation = await storage.validatePaymentMethod(paymentMethodId, currentUser.id);
+      if (!validation.valid) {
+        return res.status(400).json({ message: validation.error });
+      }
+
+      // Process withdrawal
+      const result = await storage.withdrawFunds(currentUser.id, amount, paymentMethodId);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({
+        message: "Withdrawal initiated successfully",
+        reference: result.reference,
+        amount,
+        status: "processing"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/wallet/banks", async (req, res) => {
+    try {
+      // Import and use payment provider for bank list
+      const { PaymentProviderFactory } = await import("./payment-providers");
+      const provider = PaymentProviderFactory.getProvider('paystack');
+      
+      if (!provider) {
+        return res.status(500).json({ message: "Payment provider not available" });
+      }
+
+      const result = await provider.getBankList();
+      
+      if (!result.success) {
+        return res.status(500).json({ message: result.error || "Failed to fetch bank list" });
+      }
+
+      res.json({
+        banks: result.banks,
+        message: "Bank list retrieved successfully"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/wallet/validate-account", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { accountNumber, bankCode } = req.body;
+      
+      if (!accountNumber || !bankCode) {
+        return res.status(400).json({ message: "Account number and bank code are required" });
+      }
+
+      // Use payment provider for account validation
+      const { PaymentProviderFactory } = await import("./payment-providers");
+      const provider = PaymentProviderFactory.getProvider('paystack');
+      
+      if (!provider) {
+        return res.status(500).json({ message: "Payment provider not available" });
+      }
+
+      const result = await provider.resolveAccountNumber(accountNumber, bankCode);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error || "Account validation failed" });
+      }
+
+      res.json({
+        valid: true,
+        account_name: result.account_name,
+        message: "Account validated successfully"
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Withdrawal routes
+  app.post("/api/withdraw", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { amount, paymentMethodId } = req.body;
+      
+      if (!amount || !paymentMethodId) {
+        return res.status(400).json({ message: "Amount and payment method are required" });
+      }
+
+      if (typeof amount !== 'number' || amount <= 0) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      const result = await storage.withdrawFunds(currentUser.id, amount, paymentMethodId);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error });
+      }
+
+      res.json({ 
+        message: "Withdrawal initiated successfully", 
+        reference: result.reference 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Currency utility route for Naira formatting
+  app.get("/api/currency/format/:amount", async (req, res) => {
+    try {
+      const { amount } = req.params;
+      const amountInKobo = parseInt(amount);
+      
+      if (isNaN(amountInKobo)) {
+        return res.status(400).json({ message: "Invalid amount" });
+      }
+
+      const amountInNaira = amountInKobo / 100;
+      const formatted = new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: 'NGN',
+        minimumFractionDigits: 2,
+      }).format(amountInNaira);
+
+      res.json({ 
+        amountInKobo, 
+        amountInNaira, 
+        formatted,
+        symbol: '₦' 
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Nigerian fintech provider information
+  app.get("/api/payment-providers", async (req, res) => {
+    try {
+      const providers = [
+        {
+          id: 'kuda',
+          name: 'Kuda Bank',
+          type: 'mobile_money',
+          description: 'Digital bank for young Nigerians',
+          supported: true,
+          popular: true
+        },
+        {
+          id: 'opay',
+          name: 'OPay',
+          type: 'mobile_money',
+          description: 'Leading fintech for payments and transfers',
+          supported: true,
+          popular: true
+        },
+        {
+          id: 'palmpay',
+          name: 'PalmPay',
+          type: 'mobile_money',
+          description: 'Mobile payment solution',
+          supported: true,
+          popular: true
+        },
+        {
+          id: 'gtbank',
+          name: 'GTBank',
+          type: 'bank_account',
+          description: 'Guaranty Trust Bank',
+          supported: true,
+          popular: false
+        },
+        {
+          id: 'access_bank',
+          name: 'Access Bank',
+          type: 'bank_account',
+          description: 'Access Bank Nigeria',
+          supported: true,
+          popular: false
+        },
+        {
+          id: 'first_bank',
+          name: 'First Bank',
+          type: 'bank_account',
+          description: 'First Bank of Nigeria',
+          supported: true,
+          popular: false
+        },
+        {
+          id: 'zenith_bank',
+          name: 'Zenith Bank',
+          type: 'bank_account',
+          description: 'Zenith Bank Nigeria',
+          supported: true,
+          popular: false
+        }
+      ];
+
+      res.json(providers);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }

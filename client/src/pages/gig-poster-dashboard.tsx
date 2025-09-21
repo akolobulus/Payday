@@ -11,7 +11,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
-import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star, Video, PhoneCall } from "lucide-react";
+import { WalletBalance, PaymentMethodSetup, FundEscrowDialog, EscrowStatus, formatNaira } from "@/components/ui/payment-components";
+import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { queryClient, apiRequest } from "@/lib/queryClient";

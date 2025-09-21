@@ -1,5 +1,6 @@
-import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation, type VideoCallSession, type InsertVideoCallSession } from "@shared/schema";
+import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation, type VideoCallSession, type InsertVideoCallSession, type Wallet, type InsertWallet, type PaymentMethod, type InsertPaymentMethod, type AddPaymentMethod, type EscrowTransaction, type InsertEscrowTransaction, type Transaction, type InsertTransaction } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { encryptSensitiveData, decryptSensitiveData, validateNigerianBankAccount } from "./payment-providers";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -15,6 +16,7 @@ export interface IStorage {
   getGigsByPoster(posterId: string): Promise<Gig[]>;
   getGigsBySeeker(seekerId: string): Promise<Gig[]>;
   applyToGig(gigId: string, seekerId: string): Promise<boolean>;
+  assignSeekerToGig(gigId: string, seekerId: string): Promise<boolean>;
   updateGigStatus(gigId: string, status: string): Promise<boolean>;
   
   // Review management
@@ -39,6 +41,42 @@ export interface IStorage {
   getVideoCallSessionsByGig(gigId: string): Promise<VideoCallSession[]>;
   getVideoCallSessionsByUser(userId: string): Promise<VideoCallSession[]>;
   updateVideoCallSessionStatus(roomId: string, status: string, startedAt?: Date, endedAt?: Date, duration?: number): Promise<boolean>;
+  
+  // Wallet management
+  createWallet(wallet: InsertWallet): Promise<Wallet>;
+  getWallet(id: string): Promise<Wallet | undefined>;
+  getWalletByUser(userId: string): Promise<Wallet | undefined>;
+  updateWalletBalance(walletId: string, amount: number, pendingAmount?: number): Promise<boolean>;
+  
+  // Payment method management
+  createPaymentMethod(paymentMethod: AddPaymentMethod & { userId: string }): Promise<PaymentMethod>;
+  getPaymentMethod(id: string): Promise<PaymentMethod | undefined>;
+  getPaymentMethodsByUser(userId: string): Promise<PaymentMethod[]>;
+  getDefaultPaymentMethod(userId: string): Promise<PaymentMethod | undefined>;
+  updatePaymentMethod(id: string, updates: Partial<PaymentMethod>): Promise<boolean>;
+  deletePaymentMethod(id: string): Promise<boolean>;
+  setDefaultPaymentMethod(userId: string, paymentMethodId: string): Promise<boolean>;
+  validatePaymentMethod(paymentMethodId: string, userId: string): Promise<{ valid: boolean; error?: string }>;
+  
+  // Escrow transaction management
+  createEscrowTransaction(escrow: InsertEscrowTransaction): Promise<EscrowTransaction>;
+  getEscrowTransaction(id: string): Promise<EscrowTransaction | undefined>;
+  getEscrowTransactionByGig(gigId: string): Promise<EscrowTransaction | undefined>;
+  updateEscrowStatus(id: string, status: string, timestamp?: Date, reference?: string): Promise<boolean>;
+  getEscrowTransactionsByUser(userId: string, userType: 'poster' | 'seeker'): Promise<EscrowTransaction[]>;
+  
+  // Transaction logging
+  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
+  getTransaction(id: string): Promise<Transaction | undefined>;
+  getTransactionsByWallet(walletId: string): Promise<Transaction[]>;
+  getTransactionsByUser(userId: string): Promise<Transaction[]>;
+  getTransactionsByEscrow(escrowId: string): Promise<Transaction[]>;
+  
+  // Payment operations
+  processEscrowPayment(gigId: string, posterId: string, amount: number, seekerId?: string): Promise<{ success: boolean; escrowId?: string; error?: string }>;
+  releaseEscrowPayment(gigId: string): Promise<{ success: boolean; error?: string }>;
+  refundEscrowPayment(gigId: string, reason: string): Promise<{ success: boolean; error?: string }>;
+  withdrawFunds(userId: string, amount: number, paymentMethodId: string): Promise<{ success: boolean; reference?: string; error?: string }>;
 }
 
 export class MemStorage implements IStorage {
@@ -47,6 +85,10 @@ export class MemStorage implements IStorage {
   private reviews: Map<string, Review>;
   private completionConfirmations: Map<string, CompletionConfirmation>;
   private videoCallSessions: Map<string, VideoCallSession>;
+  private wallets: Map<string, Wallet>;
+  private paymentMethods: Map<string, PaymentMethod>;
+  private escrowTransactions: Map<string, EscrowTransaction>;
+  private transactions: Map<string, Transaction>;
 
   constructor() {
     this.users = new Map();
@@ -54,9 +96,14 @@ export class MemStorage implements IStorage {
     this.reviews = new Map();
     this.completionConfirmations = new Map();
     this.videoCallSessions = new Map();
+    this.wallets = new Map();
+    this.paymentMethods = new Map();
+    this.escrowTransactions = new Map();
+    this.transactions = new Map();
     this.initializeTestUsers();
     this.initializeTestGigs();
     this.initializeTestReviews();
+    this.initializeTestWallets();
   }
 
   private initializeTestUsers() {
@@ -94,6 +141,34 @@ export class MemStorage implements IStorage {
 
     this.users.set(posterUser.id, posterUser);
     this.users.set(seekerUser.id, seekerUser);
+  }
+
+  private initializeTestWallets() {
+    // Create wallets for test users
+    const posterWallet: Wallet = {
+      id: "wallet-poster-1",
+      userId: "test-poster-1",
+      balance: 5000000, // ₦50,000 in kobo
+      pendingBalance: 0,
+      totalEarnings: 0,
+      totalSpent: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const seekerWallet: Wallet = {
+      id: "wallet-seeker-1", 
+      userId: "test-seeker-1",
+      balance: 2500000, // ₦25,000 in kobo
+      pendingBalance: 0,
+      totalEarnings: 12000000, // ₦120,000 in kobo
+      totalSpent: 9500000, // ₦95,000 in kobo
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    this.wallets.set(posterWallet.id, posterWallet);
+    this.wallets.set(seekerWallet.id, seekerWallet);
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -251,13 +326,41 @@ export class MemStorage implements IStorage {
 
   async applyToGig(gigId: string, seekerId: string): Promise<boolean> {
     const gig = this.gigs.get(gigId);
-    if (gig && gig.status === "open") {
-      gig.seekerId = seekerId;
-      gig.status = "assigned";
-      this.gigs.set(gigId, gig);
-      return true;
+    if (!gig || gig.status !== "open") {
+      return false;
     }
-    return false;
+
+    // Check if gig is already assigned
+    if (gig.seekerId) {
+      return false; // Gig is already assigned to someone
+    }
+
+    // Just mark that this seeker applied - don't assign yet
+    // Assignment will happen when poster explicitly assigns via /assign-seeker endpoint
+    gig.status = "has_applications";
+    this.gigs.set(gigId, gig);
+
+    return true;
+  }
+
+  async assignSeekerToGig(gigId: string, seekerId: string): Promise<boolean> {
+    const gig = this.gigs.get(gigId);
+    if (!gig || !["open", "has_applications"].includes(gig.status)) {
+      return false;
+    }
+
+    // Verify seeker exists
+    const seeker = await this.getUser(seekerId);
+    if (!seeker || seeker.userType !== 'seeker') {
+      return false;
+    }
+
+    // Assign seeker to gig but don't mark as assigned yet - that happens after funding
+    gig.seekerId = seekerId;
+    gig.status = "assigned_pending_funding";
+    this.gigs.set(gigId, gig);
+
+    return true;
   }
 
   async updateGigStatus(gigId: string, status: string): Promise<boolean> {
@@ -383,21 +486,73 @@ export class MemStorage implements IStorage {
       return false;
     }
 
-    if (userType === 'seeker') {
-      confirmation.confirmedBySeeker = true;
-      confirmation.seekerConfirmedAt = new Date();
-    } else if (userType === 'poster') {
-      confirmation.confirmedByPoster = true;
-      confirmation.posterConfirmedAt = new Date();
+    // Check if user has already confirmed (idempotency check)
+    const alreadyConfirmed = userType === 'seeker' ? confirmation.confirmedBySeeker : confirmation.confirmedByPoster;
+    
+    if (!alreadyConfirmed) {
+      if (userType === 'seeker') {
+        confirmation.confirmedBySeeker = true;
+        confirmation.seekerConfirmedAt = new Date();
+      } else if (userType === 'poster') {
+        confirmation.confirmedByPoster = true;
+        confirmation.posterConfirmedAt = new Date();
+      }
+      this.completionConfirmations.set(confirmation.id, confirmation);
     }
 
-    this.completionConfirmations.set(confirmation.id, confirmation);
+    // Check if both parties have confirmed (atomic mutual confirmation check)
+    const mutuallyConfirmed = confirmation.confirmedBySeeker && confirmation.confirmedByPoster;
+    
+    if (mutuallyConfirmed) {
+      // Get current gig status to ensure idempotency
+      const gig = await this.getGig(gigId);
+      if (!gig) {
+        return false;
+      }
 
-    // Check if both parties have confirmed and update gig status
-    if (confirmation.confirmedBySeeker && confirmation.confirmedByPoster) {
-      await this.updateGigStatus(gigId, "completed");
+      // Only process completion if not already completed (idempotency)
+      if (gig.status !== "completed") {
+        try {
+          // Start atomic operation: update status first
+          await this.updateGigStatus(gigId, "completed");
+          
+          // Automatically release escrow payment (with built-in idempotency)
+          const releaseResult = await this.releaseEscrowPayment(gigId);
+          if (!releaseResult.success) {
+            // Log error but don't revert - payment can be released manually later
+            console.error(`Automatic payment release failed for gig ${gigId}:`, releaseResult.error);
+            
+            // Create a transaction log for the failed release attempt
+            await this.createTransaction({
+              userId: gig.posterId,
+              walletId: "system", // placeholder for system transactions
+              escrowId: null,
+              type: "fee",
+              amount: 0,
+              balanceBefore: 0,
+              balanceAfter: 0,
+              description: `Failed automatic payment release for gig ${gigId}: ${releaseResult.error}`,
+              reference: `failed-release-${gigId}`,
+              status: "failed",
+              metadata: JSON.stringify({ 
+                gigId, 
+                error: releaseResult.error,
+                timestamp: new Date().toISOString(),
+                action: "automatic_release"
+              }),
+            }).catch(() => {}); // Ignore logging errors
+          }
+        } catch (error) {
+          console.error(`Critical error in completion confirmation for gig ${gigId}:`, error);
+          // Even on error, we don't revert the confirmation to prevent losing completion state
+        }
+      }
     } else {
-      await this.updateGigStatus(gigId, "awaiting_mutual_confirmation");
+      // Update status to awaiting mutual confirmation if not already there
+      const gig = await this.getGig(gigId);
+      if (gig && !["completed", "awaiting_mutual_confirmation"].includes(gig.status)) {
+        await this.updateGigStatus(gigId, "awaiting_mutual_confirmation");
+      }
     }
 
     return true;
@@ -462,6 +617,473 @@ export class MemStorage implements IStorage {
 
     this.videoCallSessions.set(session.id, session);
     return true;
+  }
+
+  // Wallet management methods
+  async createWallet(insertWallet: InsertWallet): Promise<Wallet> {
+    const id = randomUUID();
+    const wallet: Wallet = {
+      ...insertWallet,
+      id,
+      balance: 0,
+      pendingBalance: 0,
+      totalEarnings: 0,
+      totalSpent: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.wallets.set(id, wallet);
+    return wallet;
+  }
+
+  async getWallet(id: string): Promise<Wallet | undefined> {
+    return this.wallets.get(id);
+  }
+
+  async getWalletByUser(userId: string): Promise<Wallet | undefined> {
+    return Array.from(this.wallets.values()).find(wallet => wallet.userId === userId);
+  }
+
+  async updateWalletBalance(walletId: string, amount: number, pendingAmount?: number): Promise<boolean> {
+    const wallet = this.wallets.get(walletId);
+    if (!wallet) return false;
+
+    wallet.balance += amount;
+    if (pendingAmount !== undefined) {
+      wallet.pendingBalance += pendingAmount;
+    }
+    wallet.updatedAt = new Date();
+    
+    this.wallets.set(walletId, wallet);
+    return true;
+  }
+
+  // Payment method management
+  async createPaymentMethod(paymentMethodData: AddPaymentMethod & { userId: string }): Promise<PaymentMethod> {
+    const id = randomUUID();
+    
+    // Encrypt sensitive data
+    const encryptedData = { ...paymentMethodData };
+    if (encryptedData.accountNumber) {
+      encryptedData.accountNumber = encryptSensitiveData(encryptedData.accountNumber);
+    }
+    if (encryptedData.phoneNumber) {
+      encryptedData.phoneNumber = encryptSensitiveData(encryptedData.phoneNumber);
+    }
+    
+    const paymentMethod: PaymentMethod = {
+      ...encryptedData,
+      id,
+      isVerified: false,
+      createdAt: new Date(),
+    };
+    
+    this.paymentMethods.set(id, paymentMethod);
+    return paymentMethod;
+  }
+
+  async getPaymentMethod(id: string): Promise<PaymentMethod | undefined> {
+    return this.paymentMethods.get(id);
+  }
+
+  async getPaymentMethodsByUser(userId: string): Promise<PaymentMethod[]> {
+    return Array.from(this.paymentMethods.values()).filter(pm => pm.userId === userId);
+  }
+
+  async getDefaultPaymentMethod(userId: string): Promise<PaymentMethod | undefined> {
+    return Array.from(this.paymentMethods.values()).find(pm => pm.userId === userId && pm.isDefault);
+  }
+
+  async updatePaymentMethod(id: string, updates: Partial<PaymentMethod>): Promise<boolean> {
+    const paymentMethod = this.paymentMethods.get(id);
+    if (!paymentMethod) return false;
+
+    Object.assign(paymentMethod, updates);
+    this.paymentMethods.set(id, paymentMethod);
+    return true;
+  }
+
+  async deletePaymentMethod(id: string): Promise<boolean> {
+    return this.paymentMethods.delete(id);
+  }
+
+  async setDefaultPaymentMethod(userId: string, paymentMethodId: string): Promise<boolean> {
+    // First, unset all current defaults for this user
+    const userPaymentMethods = await this.getPaymentMethodsByUser(userId);
+    for (const pm of userPaymentMethods) {
+      if (pm.isDefault) {
+        pm.isDefault = false;
+        this.paymentMethods.set(pm.id, pm);
+      }
+    }
+
+    // Set the new default
+    const paymentMethod = this.paymentMethods.get(paymentMethodId);
+    if (!paymentMethod || paymentMethod.userId !== userId) return false;
+    
+    paymentMethod.isDefault = true;
+    this.paymentMethods.set(paymentMethodId, paymentMethod);
+    return true;
+  }
+
+  async validatePaymentMethod(paymentMethodId: string, userId: string): Promise<{ valid: boolean; error?: string }> {
+    const paymentMethod = await this.getPaymentMethod(paymentMethodId);
+    
+    if (!paymentMethod) {
+      return { valid: false, error: "Payment method not found" };
+    }
+    
+    if (paymentMethod.userId !== userId) {
+      return { valid: false, error: "Payment method does not belong to user" };
+    }
+    
+    if (paymentMethod.type === 'bank_account') {
+      if (!paymentMethod.accountNumber || !paymentMethod.bankCode) {
+        return { valid: false, error: "Bank account details incomplete" };
+      }
+      
+      try {
+        const decryptedAccountNumber = decryptSensitiveData(paymentMethod.accountNumber);
+        const validation = validateNigerianBankAccount(decryptedAccountNumber, paymentMethod.bankCode);
+        if (!validation.valid) {
+          return validation;
+        }
+      } catch (error) {
+        return { valid: false, error: "Invalid encrypted account data" };
+      }
+    }
+    
+    if (paymentMethod.type === 'mobile_money') {
+      if (!paymentMethod.phoneNumber) {
+        return { valid: false, error: "Mobile money phone number required" };
+      }
+      
+      try {
+        const decryptedPhone = decryptSensitiveData(paymentMethod.phoneNumber);
+        // Basic Nigerian phone number validation
+        if (!/^(\+234|234|0)[7-9][0-1]\d{8}$/.test(decryptedPhone.replace(/\s+/g, ''))) {
+          return { valid: false, error: "Invalid Nigerian phone number format" };
+        }
+      } catch (error) {
+        return { valid: false, error: "Invalid encrypted phone data" };
+      }
+    }
+    
+    return { valid: true };
+  }
+
+  // Escrow transaction management
+  async createEscrowTransaction(escrowData: InsertEscrowTransaction): Promise<EscrowTransaction> {
+    const id = randomUUID();
+    const escrow: EscrowTransaction = {
+      ...escrowData,
+      id,
+      status: "pending",
+      escrowedAt: null,
+      releasedAt: null,
+      refundedAt: null,
+      paymentReference: null,
+      releaseReference: null,
+      createdAt: new Date(),
+    };
+    
+    this.escrowTransactions.set(id, escrow);
+    return escrow;
+  }
+
+  async getEscrowTransaction(id: string): Promise<EscrowTransaction | undefined> {
+    return this.escrowTransactions.get(id);
+  }
+
+  async getEscrowTransactionByGig(gigId: string): Promise<EscrowTransaction | undefined> {
+    return Array.from(this.escrowTransactions.values()).find(escrow => escrow.gigId === gigId);
+  }
+
+  async updateEscrowStatus(id: string, status: string, timestamp?: Date, reference?: string): Promise<boolean> {
+    const escrow = this.escrowTransactions.get(id);
+    if (!escrow) return false;
+
+    escrow.status = status;
+    
+    if (status === "escrowed" && timestamp) {
+      escrow.escrowedAt = timestamp;
+      escrow.paymentReference = reference || null;
+    } else if (status === "released" && timestamp) {
+      escrow.releasedAt = timestamp;
+      escrow.releaseReference = reference || null;
+    } else if (status === "refunded" && timestamp) {
+      escrow.refundedAt = timestamp;
+    }
+
+    this.escrowTransactions.set(id, escrow);
+    return true;
+  }
+
+  async getEscrowTransactionsByUser(userId: string, userType: 'poster' | 'seeker'): Promise<EscrowTransaction[]> {
+    const field = userType === 'poster' ? 'posterId' : 'seekerId';
+    return Array.from(this.escrowTransactions.values()).filter(escrow => escrow[field] === userId);
+  }
+
+  // Transaction logging
+  async createTransaction(transactionData: InsertTransaction): Promise<Transaction> {
+    const id = randomUUID();
+    const transaction: Transaction = {
+      ...transactionData,
+      id,
+      status: transactionData.status || "completed",
+      createdAt: new Date(),
+    };
+    
+    this.transactions.set(id, transaction);
+    return transaction;
+  }
+
+  async getTransaction(id: string): Promise<Transaction | undefined> {
+    return this.transactions.get(id);
+  }
+
+  async getTransactionsByWallet(walletId: string): Promise<Transaction[]> {
+    return Array.from(this.transactions.values()).filter(t => t.walletId === walletId);
+  }
+
+  async getTransactionsByUser(userId: string): Promise<Transaction[]> {
+    return Array.from(this.transactions.values()).filter(t => t.userId === userId);
+  }
+
+  async getTransactionsByEscrow(escrowId: string): Promise<Transaction[]> {
+    return Array.from(this.transactions.values()).filter(t => t.escrowId === escrowId);
+  }
+
+  // Payment operations
+  async processEscrowPayment(gigId: string, posterId: string, amount: number, seekerId?: string): Promise<{ success: boolean; escrowId?: string; error?: string }> {
+    try {
+      // Get poster's wallet
+      const posterWallet = await this.getWalletByUser(posterId);
+      if (!posterWallet) {
+        return { success: false, error: "Poster wallet not found" };
+      }
+
+      // Check if poster has sufficient balance
+      if (posterWallet.balance < amount) {
+        return { success: false, error: "Insufficient balance" };
+      }
+
+      // Calculate platform fee (12% as mentioned in pitch deck)
+      const platformFee = Math.floor(amount * 0.12);
+      const totalAmount = amount + platformFee;
+
+      if (posterWallet.balance < totalAmount) {
+        return { success: false, error: "Insufficient balance including platform fee" };
+      }
+
+      // Create escrow transaction with proper seeker assignment
+      const escrow = await this.createEscrowTransaction({
+        gigId,
+        posterId,
+        seekerId: seekerId || null,
+        amount,
+        platformFee,
+      });
+
+      // Deduct from poster's balance and add to pending
+      await this.updateWalletBalance(posterWallet.id, -totalAmount, totalAmount);
+      
+      // Log the transaction
+      await this.createTransaction({
+        userId: posterId,
+        walletId: posterWallet.id,
+        escrowId: escrow.id,
+        type: "escrow_hold",
+        amount: -totalAmount,
+        balanceBefore: posterWallet.balance,
+        balanceAfter: posterWallet.balance - totalAmount,
+        description: `Escrow payment for gig ${gigId}`,
+        reference: `escrow-${escrow.id}`,
+        status: "completed",
+        metadata: JSON.stringify({ gigId, platformFee, seekerId }),
+      });
+
+      // Update escrow status to escrowed
+      await this.updateEscrowStatus(escrow.id, "escrowed", new Date(), `payment-${randomUUID()}`);
+
+      return { success: true, escrowId: escrow.id };
+    } catch (error) {
+      return { success: false, error: "Payment processing failed" };
+    }
+  }
+
+  async releaseEscrowPayment(gigId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const escrow = await this.getEscrowTransactionByGig(gigId);
+      if (!escrow) {
+        return { success: false, error: "Escrow transaction not found" };
+      }
+
+      // Idempotency check - if already released, return success
+      if (escrow.status === "released") {
+        return { success: true };
+      }
+
+      if (escrow.status !== "escrowed") {
+        return { success: false, error: `Escrow is not in escrowed state (current: ${escrow.status})` };
+      }
+
+      if (!escrow.seekerId) {
+        return { success: false, error: "No seeker assigned to this gig" };
+      }
+
+      // Get wallets
+      const posterWallet = await this.getWalletByUser(escrow.posterId);
+      const seekerWallet = await this.getWalletByUser(escrow.seekerId);
+      
+      if (!posterWallet || !seekerWallet) {
+        return { success: false, error: "User wallets not found" };
+      }
+
+      // Release payment to seeker
+      const seekerAmount = escrow.amount;
+      await this.updateWalletBalance(seekerWallet.id, seekerAmount);
+      
+      // Update poster's pending balance
+      await this.updateWalletBalance(posterWallet.id, 0, -(escrow.amount + escrow.platformFee));
+
+      // Update seeker's total earnings
+      const updatedSeekerWallet = await this.getWallet(seekerWallet.id);
+      if (updatedSeekerWallet) {
+        updatedSeekerWallet.totalEarnings += seekerAmount;
+        this.wallets.set(seekerWallet.id, updatedSeekerWallet);
+      }
+
+      // Update poster's total spent
+      const updatedPosterWallet = await this.getWallet(posterWallet.id);
+      if (updatedPosterWallet) {
+        updatedPosterWallet.totalSpent += (escrow.amount + escrow.platformFee);
+        this.wallets.set(posterWallet.id, updatedPosterWallet);
+      }
+
+      // Log transactions
+      await this.createTransaction({
+        userId: escrow.seekerId,
+        walletId: seekerWallet.id,
+        escrowId: escrow.id,
+        type: "escrow_release",
+        amount: seekerAmount,
+        balanceBefore: seekerWallet.balance,
+        balanceAfter: seekerWallet.balance + seekerAmount,
+        description: `Payment received for gig ${gigId}`,
+        reference: `release-${randomUUID()}`,
+        status: "completed",
+        metadata: JSON.stringify({ gigId, originalAmount: escrow.amount }),
+      });
+
+      // Update escrow status
+      await this.updateEscrowStatus(escrow.id, "released", new Date(), `release-${randomUUID()}`);
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: "Payment release failed" };
+    }
+  }
+
+  async refundEscrowPayment(gigId: string, reason: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const escrow = await this.getEscrowTransactionByGig(gigId);
+      if (!escrow) {
+        return { success: false, error: "Escrow transaction not found" };
+      }
+
+      if (escrow.status !== "escrowed") {
+        return { success: false, error: "Escrow is not in escrowed state" };
+      }
+
+      const posterWallet = await this.getWalletByUser(escrow.posterId);
+      if (!posterWallet) {
+        return { success: false, error: "Poster wallet not found" };
+      }
+
+      // Refund the full amount (including platform fee) back to poster
+      const refundAmount = escrow.amount + escrow.platformFee;
+      await this.updateWalletBalance(posterWallet.id, refundAmount, -refundAmount);
+
+      // Log the refund transaction
+      await this.createTransaction({
+        userId: escrow.posterId,
+        walletId: posterWallet.id,
+        escrowId: escrow.id,
+        type: "refund",
+        amount: refundAmount,
+        balanceBefore: posterWallet.balance,
+        balanceAfter: posterWallet.balance + refundAmount,
+        description: `Refund for gig ${gigId}: ${reason}`,
+        reference: `refund-${randomUUID()}`,
+        status: "completed",
+        metadata: JSON.stringify({ gigId, reason }),
+      });
+
+      // Update escrow status
+      await this.updateEscrowStatus(escrow.id, "refunded", new Date());
+
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: "Refund processing failed" };
+    }
+  }
+
+  async withdrawFunds(userId: string, amount: number, paymentMethodId: string): Promise<{ success: boolean; reference?: string; error?: string }> {
+    try {
+      const wallet = await this.getWalletByUser(userId);
+      const paymentMethod = await this.getPaymentMethod(paymentMethodId);
+
+      if (!wallet) {
+        return { success: false, error: "Wallet not found" };
+      }
+
+      if (!paymentMethod || paymentMethod.userId !== userId) {
+        return { success: false, error: "Payment method not found" };
+      }
+
+      if (!paymentMethod.isVerified) {
+        return { success: false, error: "Payment method not verified" };
+      }
+
+      if (wallet.balance < amount) {
+        return { success: false, error: "Insufficient balance" };
+      }
+
+      // Minimum withdrawal is ₦100 (10,000 kobo)
+      if (amount < 10000) {
+        return { success: false, error: "Minimum withdrawal is ₦100" };
+      }
+
+      // Deduct from wallet
+      await this.updateWalletBalance(wallet.id, -amount);
+
+      const reference = `withdraw-${randomUUID()}`;
+
+      // Log the withdrawal transaction
+      await this.createTransaction({
+        userId,
+        walletId: wallet.id,
+        escrowId: null,
+        type: "withdrawal",
+        amount: -amount,
+        balanceBefore: wallet.balance,
+        balanceAfter: wallet.balance - amount,
+        description: `Withdrawal to ${paymentMethod.provider} ${paymentMethod.accountNumber || paymentMethod.phoneNumber}`,
+        reference,
+        status: "completed",
+        metadata: JSON.stringify({ 
+          paymentMethodId, 
+          provider: paymentMethod.provider,
+          accountInfo: paymentMethod.accountNumber || paymentMethod.phoneNumber 
+        }),
+      });
+
+      return { success: true, reference };
+    } catch (error) {
+      return { success: false, error: "Withdrawal processing failed" };
+    }
   }
 }
 
