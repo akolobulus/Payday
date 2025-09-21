@@ -4,7 +4,12 @@
  * Page templates for the Payday platform
  */
 
-window.Pages = {
+// Ensure Pages object is available immediately
+if (!window.Pages) {
+    window.Pages = {};
+}
+
+Object.assign(window.Pages, {
     home: () => `
         <!-- Navigation -->
         <nav id="navbar" class="navbar">
@@ -23,14 +28,14 @@ window.Pages = {
                 
                 <!-- Desktop Navigation -->
                 <div class="nav-links desktop-only">
-                    <a href="#how-it-works" data-nav="#how-it-works" data-testid="nav-how-it-works">How it Works</a>
-                    <a href="#benefits" data-nav="#benefits" data-testid="nav-benefits">Benefits</a>
-                    <a href="#testimonials" data-nav="#testimonials" data-testid="nav-testimonials">Stories</a>
-                    <a href="#contact" data-nav="#contact" data-testid="nav-contact">Contact</a>
-                    <button id="nav-login" class="btn btn-outline guest-only" data-testid="button-login">Login</button>
-                    <button id="nav-signup" class="btn btn-primary guest-only" data-testid="button-signup">Get Started</button>
-                    <button id="nav-dashboard" class="btn btn-primary auth-only" data-nav="/dashboard/seeker" style="display: none;" data-testid="button-dashboard">Dashboard</button>
-                    <button id="nav-logout" class="btn btn-outline auth-only" onclick="window.Auth.logout()" style="display: none;" data-testid="button-logout">Logout</button>
+                    <a href="#how-it-works" data-nav="#how-it-works" data-testid="nav-how-it-works"><i class="fas fa-info-circle"></i> How it Works</a>
+                    <a href="#benefits" data-nav="#benefits" data-testid="nav-benefits"><i class="fas fa-star"></i> Benefits</a>
+                    <a href="#testimonials" data-nav="#testimonials" data-testid="nav-testimonials"><i class="fas fa-users"></i> Stories</a>
+                    <a href="#contact" data-nav="#contact" data-testid="nav-contact"><i class="fas fa-envelope"></i> Contact</a>
+                    <button id="nav-login" class="btn btn-outline guest-only" data-testid="button-login"><i class="fas fa-sign-in-alt"></i> Login</button>
+                    <button id="nav-signup" class="btn btn-primary guest-only" data-testid="button-signup"><i class="fas fa-user-plus"></i> Get Started</button>
+                    <button id="nav-dashboard" class="btn btn-primary auth-only" data-nav="/dashboard/seeker" style="display: none;" data-testid="button-dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+                    <button id="nav-logout" class="btn btn-outline auth-only" onclick="window.Auth.logout()" style="display: none;" data-testid="button-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
                 </div>
             </div>
             
@@ -76,11 +81,32 @@ window.Pages = {
                         </div>
                         <div class="hero-actions" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
                             <button id="hero-signup" class="btn btn-primary btn-lg" data-testid="button-hero-signup">
-                                Start Earning Today
+                                <i class="fas fa-rocket"></i> Start Earning Today
                             </button>
                             <button id="hero-demo" class="btn btn-outline btn-lg" data-testid="button-hero-demo">
-                                Watch Demo
+                                <i class="fas fa-play-circle"></i> Watch Demo
                             </button>
+                        </div>
+                        
+                        <!-- Demo Account Section -->
+                        <div class="demo-accounts" style="margin-bottom: 1.5rem; padding: 1.5rem; background: var(--gray-50); border-radius: 0.75rem; border: 1px solid var(--gray-200);">
+                            <h3 style="margin-bottom: 1rem; color: var(--payday-blue); font-size: 1.1rem; font-weight: 600;">
+                                <i class="fas fa-flask"></i> Try Demo Accounts
+                            </h3>
+                            <div class="grid grid-2 gap-3">
+                                <button id="demo-seeker" class="btn btn-secondary" style="padding: 1rem; text-align: left; background: white; border: 2px solid var(--payday-light-blue); color: var(--payday-blue);">
+                                    <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                                        <i class="fas fa-user"></i> Gig Seeker
+                                    </div>
+                                    <div style="font-size: 0.875rem; opacity: 0.8;">adebayo@unilag.edu.ng</div>
+                                </button>
+                                <button id="demo-poster" class="btn btn-secondary" style="padding: 1rem; text-align: left; background: white; border: 2px solid var(--success); color: var(--success);">
+                                    <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                                        <i class="fas fa-briefcase"></i> Gig Poster
+                                    </div>
+                                    <div style="font-size: 0.875rem; opacity: 0.8;">folake@techcorp.ng</div>
+                                </button>
+                            </div>
                         </div>
                         <p class="hero-guarantee" style="font-size: 0.875rem; color: var(--gray-600);">
                             🔒 Guaranteed same-day payment • 📱 Works on any phone • ✅ Verified gigs only
@@ -659,4 +685,4 @@ window.Pages = {
             </div>
         </div>
     `
-};
+});
