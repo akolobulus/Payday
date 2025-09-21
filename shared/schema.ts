@@ -35,6 +35,16 @@ export const gigs = pgTable("gigs", {
   completedAt: timestamp("completed_at"),
 });
 
+export const reviews = pgTable("reviews", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reviewerId: varchar("reviewer_id").notNull().references(() => users.id),
+  revieweeId: varchar("reviewee_id").notNull().references(() => users.id),
+  gigId: varchar("gig_id").notNull().references(() => gigs.id),
+  rating: integer("rating").notNull(), // 1-5 star rating
+  comment: text("comment").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
@@ -58,6 +68,16 @@ export const insertGigSchema = createInsertSchema(gigs).pick({
   skillsRequired: true,
 });
 
+export const insertReviewSchema = createInsertSchema(reviews).pick({
+  revieweeId: true,
+  gigId: true,
+  rating: true,
+  comment: true,
+}).extend({
+  rating: z.number().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
+  comment: z.string().min(1, "Comment is required").max(500, "Comment must be less than 500 characters"),
+});
+
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -65,6 +85,8 @@ export const loginSchema = z.object({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertGig = z.infer<typeof insertGigSchema>;
+export type InsertReview = z.infer<typeof insertReviewSchema>;
 export type User = typeof users.$inferSelect;
 export type Gig = typeof gigs.$inferSelect;
+export type Review = typeof reviews.$inferSelect;
 export type LoginCredentials = z.infer<typeof loginSchema>;

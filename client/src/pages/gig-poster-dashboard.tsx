@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye } from "lucide-react";
+import { ReviewForm, UserRating } from "@/components/ui/review-components";
+import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -388,9 +389,10 @@ export default function GigPosterDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="gigs" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="gigs" data-testid="tab-gigs">My Gigs</TabsTrigger>
             <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="reviews" data-testid="tab-reviews">Reviews</TabsTrigger>
             <TabsTrigger value="profile" data-testid="tab-profile">Business Profile</TabsTrigger>
           </TabsList>
 
@@ -484,6 +486,23 @@ export default function GigPosterDashboard() {
                         Cancel Gig
                       </Button>
                     )}
+
+                    {gig.status === 'completed' && gig.seekerId && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Assigned to:</span>
+                          <UserRating userId={gig.seekerId} size="sm" />
+                        </div>
+                        <ReviewForm 
+                          gig={gig}
+                          revieweeId={gig.seekerId}
+                          revieweeName="Gig Seeker"
+                          onSuccess={() => {
+                            queryClient.invalidateQueries({ queryKey: ['/api/user', gig.seekerId, 'rating'] });
+                          }}
+                        />
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -546,6 +565,37 @@ export default function GigPosterDashboard() {
                     </div>
                     <p className="text-sm text-gray-500">
                       {myGigs?.filter(g => g.status === 'completed').length || 0} of {myGigs?.length || 0} gigs completed
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reviews" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  My Reviews & Ratings
+                </CardTitle>
+                <CardDescription>
+                  See what gig seekers are saying about working with you
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* User's Overall Rating */}
+                  <div className="text-center p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-2">Your Overall Rating</h3>
+                    {user && <UserRating userId={user.id} size="lg" showCount />}
+                  </div>
+                  
+                  {/* Reviews Received */}
+                  <div>
+                    <h4 className="text-md font-semibold mb-4">Recent Reviews</h4>
+                    <p className="text-gray-500 text-center py-8">
+                      Reviews will appear here after gig seekers complete your gigs and leave feedback.
                     </p>
                   </div>
                 </div>

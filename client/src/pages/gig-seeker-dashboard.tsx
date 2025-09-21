@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, DollarSign } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { User, Gig } from "@shared/schema";
@@ -154,10 +155,11 @@ export default function GigSeekerDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="browse" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="browse" data-testid="tab-browse">Browse Gigs</TabsTrigger>
             <TabsTrigger value="recommendations" data-testid="tab-recommendations">AI Recommendations</TabsTrigger>
             <TabsTrigger value="applications" data-testid="tab-applications">My Applications</TabsTrigger>
+            <TabsTrigger value="reviews" data-testid="tab-reviews">Reviews</TabsTrigger>
             <TabsTrigger value="profile" data-testid="tab-profile">Profile</TabsTrigger>
           </TabsList>
 
@@ -342,11 +344,28 @@ export default function GigSeekerDashboard() {
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-green-600">₦{gig.budget.toLocaleString()}</span>
                       <span className="text-sm text-gray-500">{gig.estimatedDuration}</span>
                     </div>
+                    
+                    {gig.status === 'completed' && gig.posterId && (
+                      <div className="space-y-2 border-t pt-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Gig Poster:</span>
+                          <UserRating userId={gig.posterId} size="sm" />
+                        </div>
+                        <ReviewForm 
+                          gig={gig}
+                          revieweeId={gig.posterId}
+                          revieweeName="Gig Poster"
+                          onSuccess={() => {
+                            queryClient.invalidateQueries({ queryKey: ['/api/user', gig.posterId, 'rating'] });
+                          }}
+                        />
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
@@ -363,6 +382,37 @@ export default function GigSeekerDashboard() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          <TabsContent value="reviews" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  My Reviews & Ratings
+                </CardTitle>
+                <CardDescription>
+                  See what gig posters are saying about your work
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* User's Overall Rating */}
+                  <div className="text-center p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-2">Your Overall Rating</h3>
+                    {user && <UserRating userId={user.id} size="lg" showCount />}
+                  </div>
+                  
+                  {/* Reviews Received */}
+                  <div>
+                    <h4 className="text-md font-semibold mb-4">Recent Reviews</h4>
+                    <p className="text-gray-500 text-center py-8">
+                      Reviews will appear here after gig posters rate your completed work.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="profile" className="space-y-4">

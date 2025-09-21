@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Gig, type InsertGig } from "@shared/schema";
+import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -16,17 +16,29 @@ export interface IStorage {
   getGigsBySeeker(seekerId: string): Promise<Gig[]>;
   applyToGig(gigId: string, seekerId: string): Promise<boolean>;
   updateGigStatus(gigId: string, status: string): Promise<boolean>;
+  
+  // Review management
+  createReview(review: InsertReview & { reviewerId: string }): Promise<Review>;
+  getReview(id: string): Promise<Review | undefined>;
+  getReviewsByUser(userId: string): Promise<Review[]>;
+  getReviewsForUser(userId: string): Promise<Review[]>;
+  getReviewsByGig(gigId: string): Promise<Review[]>;
+  getExistingReview(reviewerId: string, revieweeId: string, gigId: string): Promise<Review | undefined>;
+  getUserRating(userId: string): Promise<{ averageRating: number; reviewCount: number }>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private gigs: Map<string, Gig>;
+  private reviews: Map<string, Review>;
 
   constructor() {
     this.users = new Map();
     this.gigs = new Map();
+    this.reviews = new Map();
     this.initializeTestUsers();
     this.initializeTestGigs();
+    this.initializeTestReviews();
   }
 
   private initializeTestUsers() {
@@ -241,6 +253,87 @@ export class MemStorage implements IStorage {
       return true;
     }
     return false;
+  }
+
+  private initializeTestReviews() {
+    // Add some test reviews for demonstration
+    const testReviews: Review[] = [
+      {
+        id: "review-1",
+        reviewerId: "test-poster-1",
+        revieweeId: "test-seeker-1",
+        gigId: "gig-1",
+        rating: 5,
+        comment: "Excellent work! Very professional and delivered on time. Would definitely hire again.",
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      },
+      {
+        id: "review-2",
+        reviewerId: "test-seeker-1",
+        revieweeId: "test-poster-1",
+        gigId: "gig-1",
+        rating: 4,
+        comment: "Great client to work with. Clear instructions and prompt payment. Highly recommended!",
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+      }
+    ];
+
+    testReviews.forEach(review => {
+      this.reviews.set(review.id, review);
+    });
+  }
+
+  // Review methods
+  async createReview(insertReview: InsertReview & { reviewerId: string }): Promise<Review> {
+    const id = randomUUID();
+    const review: Review = {
+      ...insertReview,
+      id,
+      createdAt: new Date(),
+    };
+    
+    this.reviews.set(id, review);
+    return review;
+  }
+
+  async getReview(id: string): Promise<Review | undefined> {
+    return this.reviews.get(id);
+  }
+
+  async getReviewsByUser(userId: string): Promise<Review[]> {
+    return Array.from(this.reviews.values()).filter(review => review.reviewerId === userId);
+  }
+
+  async getReviewsForUser(userId: string): Promise<Review[]> {
+    return Array.from(this.reviews.values()).filter(review => review.revieweeId === userId);
+  }
+
+  async getReviewsByGig(gigId: string): Promise<Review[]> {
+    return Array.from(this.reviews.values()).filter(review => review.gigId === gigId);
+  }
+
+  async getExistingReview(reviewerId: string, revieweeId: string, gigId: string): Promise<Review | undefined> {
+    return Array.from(this.reviews.values()).find(
+      review => review.reviewerId === reviewerId && 
+                review.revieweeId === revieweeId && 
+                review.gigId === gigId
+    );
+  }
+
+  async getUserRating(userId: string): Promise<{ averageRating: number; reviewCount: number }> {
+    const userReviews = await this.getReviewsForUser(userId);
+    
+    if (userReviews.length === 0) {
+      return { averageRating: 0, reviewCount: 0 };
+    }
+
+    const totalRating = userReviews.reduce((sum, review) => sum + review.rating, 0);
+    const averageRating = totalRating / userReviews.length;
+    
+    return {
+      averageRating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+      reviewCount: userReviews.length
+    };
   }
 }
 

@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertGigSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema } from "@shared/schema";
 import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
 import { z } from "zod";
 
@@ -271,6 +271,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       res.json(analytics);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Review routes
+  app.post("/api/reviews", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const reviewData = insertReviewSchema.parse(req.body);
+      
+      // Verify the gig exists and is completed
+      const gig = await storage.getGig(reviewData.gigId);
+      if (!gig || gig.status !== 'completed') {
+        return res.status(400).json({ message: "Can only review completed gigs" });
+      }
+
+      // Verify the user was involved in this gig
+      const isInvolvedInGig = gig.posterId === currentUser.id || gig.seekerId === currentUser.id;
+      if (!isInvolvedInGig) {
+        return res.status(403).json({ message: "Can only review gigs you were involved in" });
+      }
+
+      // Prevent self-review
+      if (reviewData.revieweeId === currentUser.id) {
+        return res.status(400).json({ message: "Cannot review yourself" });
+      }
+
+      // Check if review already exists
+      const existingReview = await storage.getExistingReview(
+        currentUser.id,
+        reviewData.revieweeId,
+        reviewData.gigId
+      );
+      if (existingReview) {
+        return res.status(400).json({ message: "You have already reviewed this user for this gig" });
+      }
+
+      // Verify the reviewee was involved in this gig
+      const revieweeInvolvedInGig = gig.posterId === reviewData.revieweeId || gig.seekerId === reviewData.revieweeId;
+      if (!revieweeInvolvedInGig) {
+        return res.status(400).json({ message: "The reviewee was not involved in this gig" });
+      }
+
+      const review = await storage.createReview({
+        ...reviewData,
+        reviewerId: currentUser.id,
+      });
+
+      res.status(201).json(review);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/reviews/user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const reviews = await storage.getReviewsForUser(userId);
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/reviews/gig/:gigId", async (req, res) => {
+    try {
+      const { gigId } = req.params;
+      const reviews = await storage.getReviewsByGig(gigId);
+      res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/user/:userId/rating", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const rating = await storage.getUserRating(userId);
+      res.json(rating);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/reviews/by-user/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const reviews = await storage.getReviewsByUser(userId);
+      res.json(reviews);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
