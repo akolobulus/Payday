@@ -515,6 +515,18 @@ class PaydayApp {
             }
         });
 
+        // Handle demo account login
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'demo-seeker' || e.target.closest('#demo-seeker')) {
+                e.preventDefault();
+                this.loginDemoAccount('seeker');
+            }
+            if (e.target.id === 'demo-poster' || e.target.closest('#demo-poster')) {
+                e.preventDefault();
+                this.loginDemoAccount('poster');
+            }
+        });
+
         // Handle mobile menu toggle
         const mobileToggle = document.getElementById('mobile-menu-toggle');
         const mobileMenu = document.getElementById('mobile-menu');
@@ -620,6 +632,42 @@ class PaydayApp {
         this.data.notifications.push(newNotification);
         this.saveData();
         return newNotification;
+    }
+
+    // Demo account login functionality
+    async loginDemoAccount(userType) {
+        try {
+            window.Loading.show('Logging in...');
+            
+            const demoCredentials = userType === 'seeker' 
+                ? { email: 'adebayo@unilag.edu.ng', password: 'password123' }
+                : { email: 'folake@techcorp.ng', password: 'password123' };
+
+            // Use the existing login API
+            const result = await window.API.login(demoCredentials);
+            
+            window.Loading.hide();
+            
+            if (result && result.user) {
+                window.Toast.success(
+                    'Welcome Back!', 
+                    `Logged in as ${result.user.firstName} ${result.user.lastName}`
+                );
+                
+                // Navigate to appropriate dashboard
+                const dashboardUrl = result.user.userType === 'seeker' 
+                    ? '/dashboard/seeker' 
+                    : '/dashboard/poster';
+                
+                setTimeout(() => {
+                    window.Router.navigate(dashboardUrl);
+                }, 1000);
+            }
+        } catch (error) {
+            window.Loading.hide();
+            window.Toast.error('Login Failed', error.message || 'Something went wrong');
+            console.error('Demo login error:', error);
+        }
     }
 }
 

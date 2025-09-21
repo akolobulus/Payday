@@ -507,18 +507,22 @@ Object.assign(window.Pages, {
                     <!-- Quick Stats -->
                     <div class="grid grid-4" style="margin-bottom: 2rem;">
                         <div class="card" style="padding: 1.5rem; text-align: center;">
+                            <div style="font-size: 2rem; color: var(--payday-blue); margin-bottom: 0.5rem;"><i class="fas fa-paper-plane"></i></div>
                             <h3 style="color: var(--payday-blue); margin: 0;">5</h3>
                             <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">Applied Gigs</p>
                         </div>
                         <div class="card" style="padding: 1.5rem; text-align: center;">
+                            <div style="font-size: 2rem; color: var(--success); margin-bottom: 0.5rem;"><i class="fas fa-tasks"></i></div>
                             <h3 style="color: var(--success); margin: 0;">2</h3>
                             <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">Active Gigs</p>
                         </div>
                         <div class="card" style="padding: 1.5rem; text-align: center;">
+                            <div style="font-size: 2rem; color: var(--payday-blue); margin-bottom: 0.5rem;"><i class="fas fa-coins"></i></div>
                             <h3 style="color: var(--payday-blue); margin: 0;">₦15,500</h3>
                             <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">This Week</p>
                         </div>
                         <div class="card" style="padding: 1.5rem; text-align: center;">
+                            <div style="font-size: 2rem; color: var(--payday-yellow); margin-bottom: 0.5rem;"><i class="fas fa-star"></i></div>
                             <h3 style="color: var(--payday-yellow); margin: 0;">4.8★</h3>
                             <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">Rating</p>
                         </div>
@@ -545,7 +549,7 @@ Object.assign(window.Pages, {
                                     <span class="badge badge-gray">Excel</span>
                                 </div>
                                 <p style="margin-bottom: 1rem; color: var(--gray-700);">Looking for accurate data entry work. Must be detail-oriented...</p>
-                                <button class="btn btn-primary">Apply Now</button>
+                                <button class="btn btn-primary"><i class="fas fa-hand-paper"></i> Apply Now</button>
                             </div>
                         </div>
                     </div>
@@ -581,10 +585,10 @@ Object.assign(window.Pages, {
                     <!-- Quick Actions -->
                     <div class="grid grid-2" style="margin-bottom: 2rem;">
                         <button class="btn btn-primary btn-lg" style="height: 60px;">
-                            + Post New Gig
+                            <i class="fas fa-plus-circle"></i> Post New Gig
                         </button>
                         <button class="btn btn-outline btn-lg" style="height: 60px;">
-                            Browse Talent
+                            <i class="fas fa-users"></i> Browse Talent
                         </button>
                     </div>
 
