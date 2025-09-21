@@ -1,10 +1,48 @@
 import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface HeroProps {
   onOpenSignup: () => void;
 }
 
 export default function Hero({ onOpenSignup }: HeroProps) {
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: { email: string; password: string }) => {
+      const response = await apiRequest("POST", "/api/auth/login", credentials);
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Demo Login Successful",
+        description: `Welcome ${data.user.firstName}! Redirecting to your dashboard...`,
+      });
+      
+      const dashboardPath = data.user.userType === 'seeker' ? '/dashboard/seeker' : '/dashboard/poster';
+      setLocation(dashboardPath);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Login Failed",
+        description: error.message || "Login failed. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDemoLogin = (userType: 'seeker' | 'poster') => {
+    const credentials = userType === 'seeker' 
+      ? { email: "bulusakolo6@gmail.com", password: "123456789" }
+      : { email: "officialarikpa@gmail.com", password: "123456789" };
+    
+    loginMutation.mutate(credentials);
+  };
+
   return (
     <section className="pt-20 pb-16 gradient-bg text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,6 +57,34 @@ export default function Hero({ onOpenSignup }: HeroProps) {
             <p className="text-xl sm:text-2xl text-blue-100 mb-8 leading-relaxed animate-slide-up">
               Connect with instant-paying gigs in your area. Perfect for Nigerian students and fresh graduates who need money today, not tomorrow.
             </p>
+            
+            {/* Demo Account Buttons */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 mb-6 animate-slide-up">
+              <h3 className="text-lg font-semibold mb-4 text-payday-yellow">Try Demo Accounts:</h3>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button 
+                  onClick={() => handleDemoLogin('seeker')}
+                  disabled={loginMutation.isPending}
+                  variant="outline"
+                  size="lg"
+                  className="flex-1 bg-white/20 border-white text-white hover:bg-white hover:text-payday-blue"
+                  data-testid="button-demo-seeker"
+                >
+                  {loginMutation.isPending ? "Logging in..." : "Demo: Gig Seeker 👨‍💼"}
+                </Button>
+                <Button 
+                  onClick={() => handleDemoLogin('poster')}
+                  disabled={loginMutation.isPending}
+                  variant="outline"
+                  size="lg"
+                  className="flex-1 bg-white/20 border-white text-white hover:bg-white hover:text-payday-blue"
+                  data-testid="button-demo-poster"
+                >
+                  {loginMutation.isPending ? "Logging in..." : "Demo: Gig Poster 🏢"}
+                </Button>
+              </div>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate-slide-up">
               <Button 
                 data-testid="button-start-earning"
