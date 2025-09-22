@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation, type VideoCallSession, type InsertVideoCallSession, type Wallet, type InsertWallet, type PaymentMethod, type InsertPaymentMethod, type AddPaymentMethod, type EscrowTransaction, type InsertEscrowTransaction, type Transaction, type InsertTransaction } from "@shared/schema";
+import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation, type VideoCallSession, type InsertVideoCallSession, type Wallet, type InsertWallet, type PaymentMethod, type InsertPaymentMethod, type AddPaymentMethod, type EscrowTransaction, type InsertEscrowTransaction, type Transaction, type InsertTransaction, type Message, type InsertMessage } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { encryptSensitiveData, decryptSensitiveData, validateNigerianBankAccount } from "./payment-providers";
 
@@ -72,6 +72,14 @@ export interface IStorage {
   getTransactionsByUser(userId: string): Promise<Transaction[]>;
   getTransactionsByEscrow(escrowId: string): Promise<Transaction[]>;
   
+  // Message management
+  createMessage(message: InsertMessage & { senderId: string }): Promise<Message>;
+  getMessage(id: string): Promise<Message | undefined>;
+  getMessagesByGig(gigId: string): Promise<Message[]>;
+  getMessagesBetweenUsers(senderId: string, receiverId: string, gigId: string): Promise<Message[]>;
+  markMessageAsRead(messageId: string): Promise<boolean>;
+  getUnreadMessageCount(userId: string, gigId?: string): Promise<number>;
+  
   // Payment operations
   processEscrowPayment(gigId: string, posterId: string, amount: number, seekerId?: string): Promise<{ success: boolean; escrowId?: string; error?: string }>;
   releaseEscrowPayment(gigId: string): Promise<{ success: boolean; error?: string }>;
@@ -89,6 +97,7 @@ export class MemStorage implements IStorage {
   private paymentMethods: Map<string, PaymentMethod>;
   private escrowTransactions: Map<string, EscrowTransaction>;
   private transactions: Map<string, Transaction>;
+  private messages: Map<string, Message>;
 
   constructor() {
     this.users = new Map();
@@ -100,6 +109,7 @@ export class MemStorage implements IStorage {
     this.paymentMethods = new Map();
     this.escrowTransactions = new Map();
     this.transactions = new Map();
+    this.messages = new Map();
     this.initializeTestUsers();
     this.initializeTestGigs();
     this.initializeTestReviews();
@@ -823,6 +833,60 @@ export class MemStorage implements IStorage {
   async getEscrowTransactionsByUser(userId: string, userType: 'poster' | 'seeker'): Promise<EscrowTransaction[]> {
     const field = userType === 'poster' ? 'posterId' : 'seekerId';
     return Array.from(this.escrowTransactions.values()).filter(escrow => escrow[field] === userId);
+  }
+
+  // Message management methods
+  async createMessage(insertMessage: InsertMessage & { senderId: string }): Promise<Message> {
+    const id = randomUUID();
+    const message: Message = {
+      ...insertMessage,
+      id,
+      isRead: false,
+      readAt: null,
+      createdAt: new Date(),
+    };
+    
+    this.messages.set(id, message);
+    return message;
+  }
+
+  async getMessage(id: string): Promise<Message | undefined> {
+    return this.messages.get(id);
+  }
+
+  async getMessagesByGig(gigId: string): Promise<Message[]> {
+    return Array.from(this.messages.values())
+      .filter(message => message.gigId === gigId)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  }
+
+  async getMessagesBetweenUsers(senderId: string, receiverId: string, gigId: string): Promise<Message[]> {
+    return Array.from(this.messages.values())
+      .filter(message => 
+        message.gigId === gigId && 
+        ((message.senderId === senderId && message.receiverId === receiverId) ||
+         (message.senderId === receiverId && message.receiverId === senderId))
+      )
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  }
+
+  async markMessageAsRead(messageId: string): Promise<boolean> {
+    const message = this.messages.get(messageId);
+    if (!message) return false;
+
+    message.isRead = true;
+    message.readAt = new Date();
+    this.messages.set(messageId, message);
+    return true;
+  }
+
+  async getUnreadMessageCount(userId: string, gigId?: string): Promise<number> {
+    return Array.from(this.messages.values())
+      .filter(message => 
+        message.receiverId === userId && 
+        !message.isRead &&
+        (gigId ? message.gigId === gigId : true)
+      ).length;
   }
 
   // Transaction logging

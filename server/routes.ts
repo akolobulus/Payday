@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema, insertVideoCallSessionSchema, addPaymentMethodSchema, insertEscrowTransactionSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema, insertVideoCallSessionSchema, addPaymentMethodSchema, insertEscrowTransactionSchema, insertMessageSchema } from "@shared/schema";
 import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
 import { z } from "zod";
 import { nanoid } from "nanoid";
@@ -465,6 +465,152 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { userId } = req.params;
       const reviews = await storage.getReviewsByUser(userId);
       res.json(reviews);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Message routes
+  app.post("/api/messages", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const messageData = insertMessageSchema.parse(req.body);
+      
+      // Verify the gig exists
+      const gig = await storage.getGig(messageData.gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      // Verify the user is involved in this gig (either poster or seeker)
+      const isInvolvedInGig = gig.posterId === currentUser.id || gig.seekerId === currentUser.id;
+      if (!isInvolvedInGig) {
+        return res.status(403).json({ message: "You can only send messages for gigs you are involved in" });
+      }
+
+      // Verify the receiver is also involved in this gig
+      const receiverInvolvedInGig = gig.posterId === messageData.receiverId || gig.seekerId === messageData.receiverId;
+      if (!receiverInvolvedInGig) {
+        return res.status(400).json({ message: "Receiver must be involved in this gig" });
+      }
+
+      // Prevent sending messages to yourself
+      if (messageData.receiverId === currentUser.id) {
+        return res.status(400).json({ message: "Cannot send message to yourself" });
+      }
+
+      const message = await storage.createMessage({
+        ...messageData,
+        senderId: currentUser.id,
+      });
+
+      res.status(201).json(message);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/messages/gig/:gigId", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId } = req.params;
+      
+      // Verify the gig exists
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      // Verify the user is involved in this gig
+      const isInvolvedInGig = gig.posterId === currentUser.id || gig.seekerId === currentUser.id;
+      if (!isInvolvedInGig) {
+        return res.status(403).json({ message: "You can only view messages for gigs you are involved in" });
+      }
+
+      const messages = await storage.getMessagesByGig(gigId);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/messages/conversation/:gigId/:otherUserId", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId, otherUserId } = req.params;
+      
+      // Verify the gig exists
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      // Verify both users are involved in this gig
+      const isCurrentUserInvolvedInGig = gig.posterId === currentUser.id || gig.seekerId === currentUser.id;
+      const isOtherUserInvolvedInGig = gig.posterId === otherUserId || gig.seekerId === otherUserId;
+      
+      if (!isCurrentUserInvolvedInGig || !isOtherUserInvolvedInGig) {
+        return res.status(403).json({ message: "Both users must be involved in this gig" });
+      }
+
+      const messages = await storage.getMessagesBetweenUsers(currentUser.id, otherUserId, gigId);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/messages/:messageId/read", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { messageId } = req.params;
+      
+      // Get the message
+      const message = await storage.getMessage(messageId);
+      if (!message) {
+        return res.status(404).json({ message: "Message not found" });
+      }
+
+      // Verify the current user is the receiver
+      if (message.receiverId !== currentUser.id) {
+        return res.status(403).json({ message: "You can only mark your own messages as read" });
+      }
+
+      const success = await storage.markMessageAsRead(messageId);
+      if (!success) {
+        return res.status(500).json({ message: "Failed to mark message as read" });
+      }
+
+      res.json({ message: "Message marked as read" });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/messages/unread-count", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId } = req.query;
+      const count = await storage.getUnreadMessageCount(currentUser.id, gigId as string);
+      res.json({ count });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }

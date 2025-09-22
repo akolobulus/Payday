@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { WalletBalance, PaymentMethodSetup, WithdrawalDialog, EscrowStatus, formatNaira } from "@/components/ui/payment-components";
+import { ChatList } from "@/components/ui/chat-components";
 import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, DollarSign, Video, PhoneCall, Wallet, ArrowUpRight } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -67,7 +68,10 @@ export default function GigSeekerDashboard() {
   });
 
   const createVideoCallMutation = useMutation({
-    mutationFn: (gigId: string) => apiRequest('/api/video-calls/create', 'POST', { gigId }),
+    mutationFn: async (gigId: string) => {
+      const response = await apiRequest('/api/video-calls/create', 'POST', { gigId });
+      return await response.json();
+    },
     onSuccess: (data) => {
       toast({
         title: "Video call created",
@@ -208,10 +212,11 @@ export default function GigSeekerDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="browse" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="browse" data-testid="tab-browse">Browse Gigs</TabsTrigger>
             <TabsTrigger value="recommendations" data-testid="tab-recommendations">AI Recommendations</TabsTrigger>
             <TabsTrigger value="applications" data-testid="tab-applications">My Applications</TabsTrigger>
+            <TabsTrigger value="chat" data-testid="tab-chat">Chat</TabsTrigger>
             <TabsTrigger value="video-calls" data-testid="tab-video-calls">Video Calls</TabsTrigger>
             <TabsTrigger value="reviews" data-testid="tab-reviews">Reviews</TabsTrigger>
             <TabsTrigger value="profile" data-testid="tab-profile">Profile</TabsTrigger>
@@ -542,6 +547,10 @@ export default function GigSeekerDashboard() {
                 </Card>
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="chat" className="space-y-4">
+            {user && <ChatList currentUser={user} />}
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-4">

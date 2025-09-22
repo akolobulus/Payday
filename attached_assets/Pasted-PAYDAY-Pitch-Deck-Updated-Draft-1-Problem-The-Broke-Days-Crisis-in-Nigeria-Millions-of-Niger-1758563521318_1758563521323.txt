@@ -1,0 +1,118 @@
+PAYDAY Pitch Deck (Updated Draft)
+
+1. Problem: The "Broke Days" Crisis in Nigeria
+
+Millions of Nigerian undergraduates & fresh graduates face “broke days” when basic needs (transport, food, rent) can’t be met.
+
+70% of Nigerian students rely on irregular financial support.
+
+Challenges:
+
+1. Scarcity of Short-Term Gigs – Few legitimate opportunities for flexible, quick work.
+
+
+2. Delayed Payments – Even when gigs exist, payments can take weeks.
+
+
+3. Lack of Trust – Youths fear scams or unreliable posters.
+
+
+Impact: Academic distraction, mental stress, stunted productivity, and reduced participation in the economy.
+
+2. Solution: Payday – Instant Relief, Local Opportunity
+
+Payday is a secure, mobile-first platform that connects Nigerian youths with verified, same-day paying gigs.
+
+Vision: Turn youth skills into instant income, eliminate “broke days,” and fuel a trusted youth-driven gig economy.
+
+Scope: Nationwide access – Lagos, Abuja, Ibadan, Jos, Port Harcourt, and more.
+
+3. Product (MVP Features)
+
+✅ Streamlined Onboarding – Gig Seekers & Gig Posters create verified profiles.
+✅ Skill-Based Profiles – Showcase top skills & experience.
+✅ Smart Gig Discovery – Filter by city, skills, pay, and availability.
+✅ Seamless Application & Assignment – Quick apply + instant notifications.
+✅ Live Video Interviews – Posters & Seekers can connect instantly before gigs (trust + clarity).
+✅ Mutual Completion Confirmation – Both sides confirm job success.
+✅ Instant Pay Guarantee – Escrow-backed system → funds released same-day once confirmed.
+✅ Reviews & Ratings (New) – Both Posters & Seekers leave ratings after gigs. Profiles display ⭐ scores & reviews, helping top users stand out.
+✅ Mobile-First Design – Optimized for low data, works on budget smartphones.
+
+4. Target Market
+
+Gig Seekers: Nigerian undergraduates & fresh graduates (18–28).
+
+Gig Posters: SMEs, event organizers, startups, households, NGOs.
+
+Fit: Youths need urgent income, Posters need reliable flexible labor.
+
+5. Market Size
+
+TAM: 40M Nigerian youths (18–30) with smartphones.
+
+SAM: 15M undergraduates & fresh grads seeking flexible income.
+
+SOM (2 yrs): 1M active youth users in 5 cities.
+
+6. Competitors
+
+Upwork / Fiverr – Long projects, no instant pay.
+
+Jobberman – Formal jobs, not student-friendly.
+
+WhatsApp/Twitter job groups – Unverified, prone to scams.
+
+7. Competitive Advantage
+
+🔥 Instant Pay Guarantee – Same-day payouts via escrow.
+🔥 Live Video Interviews – Real-time verification & discussion.
+🔥 AI Job Matching – Auto-suggests gigs by skills, location, availability.
+🔥 Reviews & Ratings (New) – Builds trust; highlights top Seekers & Posters.
+🔥 Gamification (Reliability Score) – Rewards consistency & quality.
+🔥 Escrow Protection – Secure funds until job completion.
+🔥 Youth-Centric Mobile Platform – Designed for Nigerian students.
+
+8. Traction & Roadmap
+
+Prototype (Q4 2025): MVP launch in Lagos, Abuja, Jos.
+
+Beta (Q2 2026): 50K active users, reviews & ratings fully live.
+
+Scale (Q4 2026): 500K+ users, fintech & SME partnerships.
+
+Future: AI-driven trust badges + verified “Top Poster/Top Seeker” rankings.
+
+9. Business/Revenue Model
+
+Commission: 10–15% per gig.
+
+Premium Profiles: Boosted visibility & “Top Rated” badges.
+
+Corporate Partnerships: SMEs & events pay for bulk recruitment.
+
+Wallet Services: Small fees on instant withdrawals.
+
+Live Interview Add-On: Paid option for recorded/archived interviews.
+
+10. Go-To-Market Strategy
+
+Campus Ambassadors: Recruit students as brand advocates.
+
+Social Media: TikTok/Instagram campaigns showcasing real payday stories.
+
+Partnerships: With fintechs (Kuda, OPay, PalmPay) + youth NGOs.
+
+Referral Incentives: Bonus for inviting friends.
+
+11. Our Ask
+
+Seeking $250,000 pre-seed funding to:
+
+Finalize MVP (escrow, video calls, reviews & ratings).
+
+Drive user acquisition in 5 major cities.
+
+Secure fintech/payment integrations.
+
+Build product & operations team.

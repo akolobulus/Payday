@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { WalletBalance, PaymentMethodSetup, FundEscrowDialog, EscrowStatus, formatNaira } from "@/components/ui/payment-components";
+import { ChatList } from "@/components/ui/chat-components";
 import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -93,7 +94,10 @@ export default function GigPosterDashboard() {
   });
 
   const createVideoCallMutation = useMutation({
-    mutationFn: (gigId: string) => apiRequest('/api/video-calls/create', 'POST', { gigId }),
+    mutationFn: async (gigId: string) => {
+      const response = await apiRequest('/api/video-calls/create', 'POST', { gigId });
+      return await response.json();
+    },
     onSuccess: (data) => {
       toast({
         title: "Video call created",
@@ -442,8 +446,9 @@ export default function GigPosterDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="gigs" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="gigs" data-testid="tab-gigs">My Gigs</TabsTrigger>
+            <TabsTrigger value="chat" data-testid="tab-chat">Chat</TabsTrigger>
             <TabsTrigger value="video-calls" data-testid="tab-video-calls">Video Calls</TabsTrigger>
             <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
             <TabsTrigger value="reviews" data-testid="tab-reviews">Reviews</TabsTrigger>
@@ -648,6 +653,10 @@ export default function GigPosterDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="chat" className="space-y-4">
+            {user && <ChatList currentUser={user} />}
           </TabsContent>
 
           <TabsContent value="video-calls" className="space-y-4">

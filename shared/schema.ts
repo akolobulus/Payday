@@ -126,6 +126,18 @@ export const transactions = pgTable("transactions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const messages = pgTable("messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gigId: varchar("gig_id").notNull().references(() => gigs.id),
+  senderId: varchar("sender_id").notNull().references(() => users.id),
+  receiverId: varchar("receiver_id").notNull().references(() => users.id),
+  content: text("content").notNull(),
+  type: text("type").notNull().default("text"), // 'text', 'image', 'file'
+  isRead: boolean("is_read").notNull().default(false),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
@@ -213,6 +225,16 @@ export const insertTransactionSchema = createInsertSchema(transactions).pick({
   metadata: true,
 });
 
+export const insertMessageSchema = createInsertSchema(messages).pick({
+  gigId: true,
+  receiverId: true,
+  content: true,
+  type: true,
+}).extend({
+  content: z.string().min(1, "Message content is required").max(1000, "Message must be less than 1000 characters"),
+  type: z.enum(["text", "image", "file"]).default("text"),
+});
+
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -247,6 +269,7 @@ export type InsertWallet = z.infer<typeof insertWalletSchema>;
 export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
 export type InsertEscrowTransaction = z.infer<typeof insertEscrowTransactionSchema>;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type AddPaymentMethod = z.infer<typeof addPaymentMethodSchema>;
 
 export type User = typeof users.$inferSelect;
@@ -258,4 +281,5 @@ export type Wallet = typeof wallets.$inferSelect;
 export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type EscrowTransaction = typeof escrowTransactions.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
+export type Message = typeof messages.$inferSelect;
 export type LoginCredentials = z.infer<typeof loginSchema>;
