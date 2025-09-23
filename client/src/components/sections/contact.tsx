@@ -3,7 +3,7 @@ export default function Contact() {
     {
       icon: "fas fa-envelope",
       title: "Email",
-      details: "officialarikpa@gmail.com",
+      details: "support@payday.ng",
     },
     {
       icon: "fas fa-phone",
@@ -13,7 +13,7 @@ export default function Contact() {
     {
       icon: "fas fa-users",
       title: "Team",
-      details: "Team Lumina\nLead: Akolo Bulus",
+      details: "Team Payday\nBuilding the future of work",
     },
   ];
 

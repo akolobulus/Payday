@@ -77,55 +77,61 @@ export default function Navbar({ onOpenLogin, onOpenSignup }: NavbarProps) {
           <button 
             data-testid="button-mobile-menu"
             onClick={toggleMobileMenu}
-            className="md:hidden text-gray-700 hover:text-payday-blue"
+            className="md:hidden flex flex-col gap-1 p-2 text-gray-700 hover:text-payday-blue transition-colors"
+            aria-label="Toggle mobile menu"
+            aria-expanded={isMobileMenuOpen}
           >
-            <i className="fas fa-bars text-xl"></i>
+            <span className={`w-6 h-0.5 bg-current transition-transform duration-200 ${isMobileMenuOpen ? 'rotate-45 translate-y-1.5' : ''}`}></span>
+            <span className={`w-6 h-0.5 bg-current transition-opacity duration-200 ${isMobileMenuOpen ? 'opacity-0' : ''}`}></span>
+            <span className={`w-6 h-0.5 bg-current transition-transform duration-200 ${isMobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
           </button>
         </div>
 
         {/* Mobile Navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden pb-4 space-y-3">
+        <div className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+          isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+        }`}>
+          <div className="px-4 pb-4 pt-2 space-y-3 bg-white border-t border-gray-100">
             <button
               data-testid="nav-mobile-how-it-works"
               onClick={() => scrollToSection('how-it-works')}
-              className="block text-gray-700 hover:text-payday-blue transition-colors font-medium"
+              className="block w-full text-left py-3 px-2 text-gray-700 hover:text-payday-blue hover:bg-gray-50 transition-colors font-medium rounded-md"
             >
               How it Works
             </button>
             <button
               data-testid="nav-mobile-benefits"
               onClick={() => scrollToSection('benefits')}
-              className="block text-gray-700 hover:text-payday-blue transition-colors font-medium"
+              className="block w-full text-left py-3 px-2 text-gray-700 hover:text-payday-blue hover:bg-gray-50 transition-colors font-medium rounded-md"
             >
               Benefits
             </button>
             <button
               data-testid="nav-mobile-contact"
               onClick={() => scrollToSection('contact')}
-              className="block text-gray-700 hover:text-payday-blue transition-colors font-medium"
+              className="block w-full text-left py-3 px-2 text-gray-700 hover:text-payday-blue hover:bg-gray-50 transition-colors font-medium rounded-md"
             >
               Contact
             </button>
-            <div className="flex space-x-3 pt-2">
+            <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
               <Button 
                 data-testid="button-mobile-login"
                 variant="outline"
                 onClick={onOpenLogin}
-                className="flex-1 text-payday-blue border-payday-blue hover:bg-payday-blue hover:text-white"
+                className="text-payday-blue border-payday-blue hover:bg-payday-blue hover:text-white"
               >
                 Login
               </Button>
               <Button 
                 data-testid="button-mobile-signup"
                 onClick={onOpenSignup}
-                className="flex-1 bg-payday-blue hover:bg-blue-700"
+                className="bg-payday-blue hover:bg-blue-700"
               >
                 Sign Up
               </Button>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </nav>
   );

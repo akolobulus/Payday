@@ -5,6 +5,7 @@ import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, ins
 import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
 import { z } from "zod";
 import { nanoid } from "nanoid";
+const Flutterwave = require('flutterwave-node-v3');
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
@@ -81,6 +82,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(401).json({ message: "Not authenticated" });
     }
     res.json(currentUser);
+  });
+
+  app.put("/api/user/profile", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const profileSchema = z.object({
+        firstName: z.string().min(2),
+        lastName: z.string().min(2),
+        phone: z.string().min(10),
+        location: z.string().min(2),
+        businessName: z.string().optional(),
+        skills: z.array(z.string()).optional(),
+      });
+
+      const profileData = profileSchema.parse(req.body);
+      
+      // Update current user object
+      currentUser = {
+        ...currentUser,
+        ...profileData,
+      };
+
+      res.json(currentUser);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Track processed transactions to prevent double-spending
+  const processedTransactions = new Set<string>();
+
+  // Flutterwave payment routes
+  app.post("/api/flutterwave/verify-payment", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { transaction_id, tx_ref } = req.body;
+
+      // Check for required environment variables
+      if (!process.env.FLW_SECRET_KEY || !process.env.FLW_PUBLIC_KEY) {
+        return res.status(500).json({ 
+          message: "Payment verification unavailable - server configuration error" 
+        });
+      }
+
+      // Idempotency check - prevent duplicate processing
+      if (processedTransactions.has(tx_ref)) {
+        return res.status(409).json({ 
+          message: "Transaction already processed" 
+        });
+      }
+
+      // Initialize Flutterwave with real keys
+      const flw = new Flutterwave(
+        process.env.FLW_PUBLIC_KEY,
+        process.env.FLW_SECRET_KEY
+      );
+
+      try {
+        // CRITICAL: Always verify with Flutterwave API - never trust client
+        const response = await flw.Transaction.verify({ id: transaction_id });
+
+        if (!response.data) {
+          return res.status(400).json({ 
+            message: "Invalid transaction verification response" 
+          });
+        }
+
+        const { status, tx_ref: verifiedTxRef, amount, currency } = response.data;
+
+        // Verify transaction details match our expectations
+        if (
+          status === "successful" && 
+          verifiedTxRef === tx_ref && 
+          currency === "NGN" &&
+          amount > 0
+        ) {
+          // Mark transaction as processed
+          processedTransactions.add(tx_ref);
+
+          // Get user wallet
+          let wallet = await storage.getWalletByUser(currentUser.id);
+          if (!wallet) {
+            wallet = await storage.createWallet({ userId: currentUser.id });
+          }
+
+          // Convert amount from Naira to kobo (multiply by 100)
+          const amountInKobo = Math.round(amount * 100);
+
+          // Add funds to wallet using verified amount
+          await storage.updateWalletBalance(wallet.id, amountInKobo);
+
+          // Create transaction record with verified data
+          await storage.createTransaction({
+            type: "deposit",
+            description: `Wallet top-up via Flutterwave`,
+            userId: currentUser.id,
+            amount: amountInKobo,
+            walletId: wallet.id,
+            balanceBefore: wallet.balance,
+            balanceAfter: wallet.balance + amountInKobo,
+            reference: transaction_id.toString(),
+            metadata: JSON.stringify({ 
+              payment_method: "flutterwave", 
+              tx_ref: verifiedTxRef,
+              verified_amount: amount,
+              currency: currency
+            }),
+          });
+
+          res.json({ 
+            success: true, 
+            message: "Payment verified and wallet updated",
+            amount: amountInKobo
+          });
+        } else {
+          res.status(400).json({ 
+            success: false, 
+            message: `Payment verification failed: ${status}`,
+            details: { status, tx_ref: verifiedTxRef, currency }
+          });
+        }
+      } catch (flwError) {
+        console.error('Flutterwave verification error:', flwError);
+        res.status(500).json({ 
+          message: "Payment verification failed - unable to verify with payment provider" 
+        });
+      }
+    } catch (error) {
+      console.error('Payment verification error:', error);
+      res.status(500).json({ message: "Payment verification failed" });
+    }
   });
 
 

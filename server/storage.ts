@@ -120,15 +120,15 @@ export class MemStorage implements IStorage {
     // Test Gig Poster Account
     const posterUser: User = {
       id: "test-poster-1",
-      email: "officialarikpa@gmail.com",
+      email: "team@payday.ng",
       password: "123456789",
-      firstName: "Akolo",
-      lastName: "Bulus",
+      firstName: "Team",
+      lastName: "Payday",
       phone: "+234 704 200 1836",
-      location: "jos",
+      location: "Lagos",
       userType: "poster",
       skills: null,
-      businessName: "Lumina Services",
+      businessName: "Team Payday",
       isVerified: true,
       createdAt: new Date(),
     };
@@ -136,12 +136,12 @@ export class MemStorage implements IStorage {
     // Test Gig Seeker Account
     const seekerUser: User = {
       id: "test-seeker-1",
-      email: "bulusakolo6@gmail.com",
+      email: "demo@payday.ng",
       password: "123456789",
-      firstName: "Bulus",
-      lastName: "Akolo",
+      firstName: "Demo",
+      lastName: "User",
       phone: "+234 703 123 4567",
-      location: "jos",
+      location: "Abuja",
       userType: "seeker",
       skills: ["delivery", "tutoring", "data-entry"],
       businessName: null,
