@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { WalletBalance, PaymentMethodSetup, WithdrawalDialog, EscrowStatus, formatNaira } from "@/components/ui/payment-components";
+import { WalletTopUp } from "@/components/ui/wallet-topup";
 import { ChatList } from "@/components/ui/chat-components";
+import { ProfileEdit } from "@/components/ui/profile-edit";
 import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, DollarSign, Video, PhoneCall, Wallet, ArrowUpRight } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -587,10 +589,15 @@ export default function GigSeekerDashboard() {
           <TabsContent value="profile" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Your Profile</CardTitle>
-                <CardDescription>
-                  Manage your skills and preferences for better gig matching
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Your Profile</CardTitle>
+                    <CardDescription>
+                      Manage your skills and preferences for better gig matching
+                    </CardDescription>
+                  </div>
+                  <ProfileEdit />
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -620,6 +627,33 @@ export default function GigSeekerDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <WalletBalance />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Wallet className="h-5 w-5 text-blue-600" />
+                    Wallet Actions
+                  </CardTitle>
+                  <CardDescription>
+                    Manage your funds for gig payments and earnings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <WalletTopUp />
+                  <WithdrawalDialog 
+                    trigger={
+                      <Button variant="outline" className="w-full">
+                        <ArrowUpRight className="h-4 w-4 mr-2" />
+                        Withdraw Funds
+                      </Button>
+                    }
+                  />
+                  <PaymentMethodSetup />
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

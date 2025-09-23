@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Wallet, CreditCard, Smartphone, Bank, Plus, ArrowUpRight, ArrowDownLeft, Check, X, Clock, Shield } from "lucide-react";
+import { Wallet, CreditCard, Smartphone, Landmark, Plus, ArrowUpRight, ArrowDownLeft, Check, X, Clock, Shield } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -371,7 +371,7 @@ export function PaymentMethodSetup() {
               >
                 <div className="flex items-center gap-3">
                   {method.type === 'mobile_money' && <Smartphone className="h-5 w-5 text-blue-600" />}
-                  {method.type === 'bank_account' && <Bank className="h-5 w-5 text-green-600" />}
+                  {method.type === 'bank_account' && <Landmark className="h-5 w-5 text-green-600" />}
                   {method.type === 'card' && <CreditCard className="h-5 w-5 text-purple-600" />}
                   <div>
                     <p className="font-medium">{providers?.find(p => p.id === method.provider)?.name}</p>

@@ -12,7 +12,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { WalletBalance, PaymentMethodSetup, FundEscrowDialog, EscrowStatus, formatNaira } from "@/components/ui/payment-components";
+import { WalletTopUp } from "@/components/ui/wallet-topup";
 import { ChatList } from "@/components/ui/chat-components";
+import { ProfileEdit } from "@/components/ui/profile-edit";
 import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -761,10 +763,15 @@ export default function GigPosterDashboard() {
           <TabsContent value="profile" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Business Profile</CardTitle>
-                <CardDescription>
-                  Manage your business information and preferences
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Business Profile</CardTitle>
+                    <CardDescription>
+                      Manage your business information and preferences
+                    </CardDescription>
+                  </div>
+                  <ProfileEdit />
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -798,6 +805,29 @@ export default function GigPosterDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <WalletBalance />
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Wallet className="h-5 w-5 text-blue-600" />
+                    Wallet Actions
+                  </CardTitle>
+                  <CardDescription>
+                    Manage funds for escrow payments and business expenses
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <WalletTopUp />
+                  <Button variant="outline" className="w-full" disabled>
+                    <Shield className="h-4 w-4 mr-2" />
+                    Fund Escrow (Select Active Gig)
+                  </Button>
+                  <PaymentMethodSetup />
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

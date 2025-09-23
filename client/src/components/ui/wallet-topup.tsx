@@ -48,7 +48,7 @@ export function WalletTopUp({ trigger }: WalletTopUpProps) {
   });
 
   const config = {
-    public_key: import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY || "FLWPUBK_TEST-demo-key",
+    public_key: import.meta.env.VITE_FLW_PUBLIC_KEY || "FLWPUBK_TEST-demo-key",
     tx_ref: `payday_topup_${Date.now()}`,
     amount: parseInt(amount) || 0,
     currency: 'NGN',
