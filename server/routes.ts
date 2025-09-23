@@ -5,6 +5,7 @@ import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, ins
 import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
 import { z } from "zod";
 import { nanoid } from "nanoid";
+// @ts-ignore: flutterwave-node-v3 doesn't have proper TypeScript definitions
 import Flutterwave from 'flutterwave-node-v3';
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -129,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { transaction_id, tx_ref } = req.body;
 
       // Check for required environment variables
-      if (!process.env.FLW_SECRET_KEY || !process.env.FLW_PUBLIC_KEY) {
+      if (!process.env.FLW_SECRET_KEY || !process.env.VITE_FLW_PUBLIC_KEY) {
         return res.status(500).json({ 
           message: "Payment verification unavailable - server configuration error" 
         });
@@ -144,7 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Initialize Flutterwave with real keys
       const flw = new Flutterwave(
-        process.env.FLW_PUBLIC_KEY,
+        process.env.VITE_FLW_PUBLIC_KEY,
         process.env.FLW_SECRET_KEY
       );
 
