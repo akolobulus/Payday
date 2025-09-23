@@ -5,7 +5,7 @@ import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, ins
 import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
 import { z } from "zod";
 import { nanoid } from "nanoid";
-const Flutterwave = require('flutterwave-node-v3');
+import Flutterwave from 'flutterwave-node-v3';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
