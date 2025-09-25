@@ -222,6 +222,7 @@ export const insertTransactionSchema = createInsertSchema(transactions).pick({
   balanceAfter: true,
   description: true,
   reference: true,
+  status: true,
   metadata: true,
 });
 

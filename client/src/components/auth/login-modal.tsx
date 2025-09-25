@@ -77,10 +77,10 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
           <h4 className="text-sm font-semibold text-payday-blue mb-2">Try Demo Accounts:</h4>
           <div className="space-y-2 text-xs">
             <div>
-              <strong>Gig Poster:</strong> officialarikpa@gmail.com / 123456789
+              <strong>Gig Poster:</strong> team@payday.ng / 123456789
             </div>
             <div>
-              <strong>Gig Seeker:</strong> bulusakolo6@gmail.com / 123456789
+              <strong>Gig Seeker:</strong> demo@payday.ng / 123456789
             </div>
           </div>
         </div>

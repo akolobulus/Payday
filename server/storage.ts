@@ -687,6 +687,11 @@ export class MemStorage implements IStorage {
       id,
       isVerified: false,
       createdAt: new Date(),
+      accountNumber: encryptedData.accountNumber || null,
+      accountName: encryptedData.accountName || null,
+      bankCode: encryptedData.bankCode || null,
+      phoneNumber: encryptedData.phoneNumber || null,
+      isDefault: encryptedData.isDefault || false,
     };
     
     this.paymentMethods.set(id, paymentMethod);
@@ -790,6 +795,8 @@ export class MemStorage implements IStorage {
       ...escrowData,
       id,
       status: "pending",
+      seekerId: escrowData.seekerId || null,
+      platformFee: escrowData.platformFee || 0,
       escrowedAt: null,
       releasedAt: null,
       refundedAt: null,
@@ -857,7 +864,7 @@ export class MemStorage implements IStorage {
   async getMessagesByGig(gigId: string): Promise<Message[]> {
     return Array.from(this.messages.values())
       .filter(message => message.gigId === gigId)
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      .sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
   }
 
   async getMessagesBetweenUsers(senderId: string, receiverId: string, gigId: string): Promise<Message[]> {
@@ -867,7 +874,7 @@ export class MemStorage implements IStorage {
         ((message.senderId === senderId && message.receiverId === receiverId) ||
          (message.senderId === receiverId && message.receiverId === senderId))
       )
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+      .sort((a, b) => (a.createdAt?.getTime() || 0) - (b.createdAt?.getTime() || 0));
   }
 
   async markMessageAsRead(messageId: string): Promise<boolean> {
@@ -896,6 +903,9 @@ export class MemStorage implements IStorage {
       ...transactionData,
       id,
       status: transactionData.status || "completed",
+      escrowId: transactionData.escrowId || null,
+      reference: transactionData.reference || null,
+      metadata: transactionData.metadata || null,
       createdAt: new Date(),
     };
     
