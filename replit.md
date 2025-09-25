@@ -36,8 +36,9 @@ Preferred communication style: Simple, everyday language.
 - **Migration Ready**: Drizzle configuration and schema prepared for PostgreSQL deployment
 
 ### Authentication & Authorization
-- **Current State**: Basic email/password authentication with automatic dashboard routing
+- **Current State**: Basic email/password authentication with automatic dashboard routing and working demo account buttons
 - **User Types**: Dual-role system with separate dashboards for 'seeker' and 'poster' user types
+- **Demo Accounts**: One-click demo login buttons for team@payday.ng (poster) and demo@payday.ng (seeker) with automatic dashboard redirection
 - **Session Management**: Simple in-memory user tracking for development
 - **Post-Login Flow**: Automatic redirection to role-appropriate dashboard after authentication
 - **Security**: Password hashing not yet implemented (development phase)

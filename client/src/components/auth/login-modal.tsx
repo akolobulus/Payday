@@ -62,6 +62,10 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
     loginMutation.mutate(data);
   };
 
+  const handleDemoLogin = (email: string, password: string) => {
+    loginMutation.mutate({ email, password });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md modal-backdrop">
@@ -74,14 +78,32 @@ export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginM
 
         {/* Demo Accounts Section */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <h4 className="text-sm font-semibold text-payday-blue mb-2">Try Demo Accounts:</h4>
-          <div className="space-y-2 text-xs">
-            <div>
-              <strong>Gig Poster:</strong> team@payday.ng / 123456789
-            </div>
-            <div>
-              <strong>Gig Seeker:</strong> demo@payday.ng / 123456789
-            </div>
+          <h4 className="text-sm font-semibold text-payday-blue mb-3">Try Demo Accounts:</h4>
+          <div className="space-y-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full text-left justify-start"
+              onClick={() => handleDemoLogin("team@payday.ng", "123456789")}
+              disabled={loginMutation.isPending}
+              data-testid="button-demo-poster"
+            >
+              <span className="font-medium">Gig Poster Dashboard</span>
+              <span className="text-xs text-gray-500 ml-auto">team@payday.ng</span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full text-left justify-start"
+              onClick={() => handleDemoLogin("demo@payday.ng", "123456789")}
+              disabled={loginMutation.isPending}
+              data-testid="button-demo-seeker"
+            >
+              <span className="font-medium">Gig Seeker Dashboard</span>
+              <span className="text-xs text-gray-500 ml-auto">demo@payday.ng</span>
+            </Button>
           </div>
         </div>
 
