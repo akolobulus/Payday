@@ -57,6 +57,10 @@ export default function GigSeekerDashboard() {
     queryKey: ['/api/user/profile']
   });
 
+  const { data: wallet } = useQuery<any>({
+    queryKey: ['/api/wallet']
+  });
+
   const { data: availableGigs, isLoading: gigsLoading } = useQuery<Gig[]>({
     queryKey: ['/api/gigs/available']
   });
@@ -258,6 +262,50 @@ export default function GigSeekerDashboard() {
         </div>
 
         <TabsContent value="browse" className="mt-0">
+          {/* Wallet Section */}
+          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-800 border-b border-gray-200 dark:border-gray-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center gap-6">
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <Wallet className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-100 dark:text-blue-200">Available Balance</p>
+                    <p className="text-3xl font-bold text-white" data-testid="wallet-balance">
+                      {formatNaira(wallet?.balance || 0)}
+                    </p>
+                  </div>
+                  <div className="border-l border-blue-400 dark:border-blue-500 pl-6">
+                    <p className="text-sm text-blue-100 dark:text-blue-200">Pending Payment</p>
+                    <p className="text-2xl font-bold text-yellow-300" data-testid="pending-balance">
+                      {formatNaira(wallet?.pendingBalance || 0)}
+                    </p>
+                    <p className="text-xs text-blue-200 dark:text-blue-300">Awaiting completion confirmation</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <WalletTopUp 
+                    trigger={
+                      <Button className="bg-white text-blue-600 hover:bg-blue-50" data-testid="button-fund-wallet">
+                        <DollarSign className="h-4 w-4 mr-2" />
+                        Fund Wallet
+                      </Button>
+                    } 
+                  />
+                  <WithdrawalDialog 
+                    trigger={
+                      <Button variant="outline" className="border-white text-white hover:bg-white/10" data-testid="button-withdraw">
+                        <ArrowUpRight className="h-4 w-4 mr-2" />
+                        Withdraw
+                      </Button>
+                    } 
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 py-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-8">
