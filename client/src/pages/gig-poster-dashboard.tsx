@@ -41,6 +41,10 @@ export default function GigPosterDashboard() {
     queryKey: ['/api/user/profile']
   });
 
+  const { data: wallet } = useQuery<any>({
+    queryKey: ['/api/wallet']
+  });
+
   const { data: myGigs, isLoading } = useQuery<Gig[]>({
     queryKey: ['/api/gigs/posted']
   });
@@ -244,6 +248,47 @@ export default function GigPosterDashboard() {
         </div>
 
         <TabsContent value="gigs" className="mt-0">
+          {/* Wallet Section */}
+          <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-800 dark:to-emerald-800 border-b border-gray-200 dark:border-gray-700">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex items-center gap-6">
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <Wallet className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-green-100 dark:text-green-200">Available Balance</p>
+                    <p className="text-3xl font-bold text-white" data-testid="wallet-balance">
+                      {formatNaira(wallet?.balance || 0)}
+                    </p>
+                  </div>
+                  <div className="border-l border-green-400 dark:border-green-500 pl-6">
+                    <p className="text-sm text-green-100 dark:text-green-200">Total Spent</p>
+                    <p className="text-2xl font-bold text-white" data-testid="total-spent">
+                      {formatNaira(wallet?.totalSpent || 0)}
+                    </p>
+                  </div>
+                  <div className="border-l border-green-400 dark:border-green-500 pl-6">
+                    <p className="text-sm text-green-100 dark:text-green-200">In Escrow</p>
+                    <p className="text-2xl font-bold text-yellow-300" data-testid="pending-balance">
+                      {formatNaira(wallet?.pendingBalance || 0)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <WalletTopUp 
+                    trigger={
+                      <Button className="bg-white text-green-600 hover:bg-green-50" data-testid="button-fund-wallet">
+                        <DollarSign className="h-4 w-4 mr-2" />
+                        Fund Wallet
+                      </Button>
+                    } 
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-800 dark:to-gray-900 py-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="flex justify-between items-center">
