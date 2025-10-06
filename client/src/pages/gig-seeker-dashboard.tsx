@@ -631,6 +631,25 @@ export default function GigSeekerDashboard() {
                       <span className="text-sm text-gray-500">{gig.estimatedDuration}</span>
                     </div>
                     
+                    {['pending_completion', 'awaiting_mutual_confirmation'].includes(gig.status) && (
+                      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                        <div className="flex items-center gap-3">
+                          <DollarSign className="h-5 w-5 text-yellow-600" />
+                          <div>
+                            <p className="font-semibold text-yellow-900 dark:text-yellow-100">
+                              Pending Payment
+                            </p>
+                            <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300" data-testid={`pending-payment-${gig.id}`}>
+                              ₦{gig.budget.toLocaleString()}
+                            </p>
+                            <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                              Payment will be released once both parties confirm completion
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
                     {gig.status === 'assigned' && gig.seekerId === user?.id && (
                       <div className="space-y-2 border-t pt-3">
                         <div className="flex justify-between items-center">
