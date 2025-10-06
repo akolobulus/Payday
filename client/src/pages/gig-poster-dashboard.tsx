@@ -129,6 +129,26 @@ export default function GigPosterDashboard() {
     createGigMutation.mutate(data);
   };
 
+  const assignSeekerMutation = useMutation({
+    mutationFn: async ({ gigId, seekerId }: { gigId: string; seekerId: string }) => {
+      return apiRequest('/api/gigs/' + gigId + '/assign-seeker', 'POST', { seekerId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/gigs/posted'] });
+      toast({
+        title: "Seeker assigned!",
+        description: "Please fund the escrow to complete the assignment.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Assignment failed",
+        description: error.message || "Unable to assign seeker",
+        variant: "destructive",
+      });
+    }
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open': return 'default';
@@ -631,6 +651,85 @@ export default function GigPosterDashboard() {
                               </Button>
                             )}
                           </div>
+
+                          {gig.status === 'has_applications' && (
+                            <div className="space-y-2 border-t pt-3 mt-3">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                  <Users className="h-4 w-4 text-green-600" />
+                                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Applications Received
+                                  </span>
+                                </div>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button 
+                                      size="sm" 
+                                      className="bg-green-600 hover:bg-green-700"
+                                      data-testid={`assign-seeker-${gig.id}`}
+                                    >
+                                      <Users className="h-4 w-4 mr-2" />
+                                      Assign Seeker
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Assign Gig Seeker</DialogTitle>
+                                      <DialogDescription>
+                                        Enter the ID of the seeker you want to assign to this gig.
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                      <Input
+                                        id={`seeker-id-${gig.id}`}
+                                        placeholder="Enter seeker ID"
+                                        data-testid={`input-seeker-id-${gig.id}`}
+                                      />
+                                      <Button 
+                                        onClick={() => {
+                                          const input = document.getElementById(`seeker-id-${gig.id}`) as HTMLInputElement;
+                                          if (input?.value) {
+                                            assignSeekerMutation.mutate({ gigId: gig.id, seekerId: input.value });
+                                          }
+                                        }}
+                                        disabled={assignSeekerMutation.isPending}
+                                        className="w-full bg-green-600 hover:bg-green-700"
+                                        data-testid={`confirm-assign-${gig.id}`}
+                                      >
+                                        {assignSeekerMutation.isPending ? "Assigning..." : "Confirm Assignment"}
+                                      </Button>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
+                            </div>
+                          )}
+
+                          {gig.status === 'assigned_pending_funding' && (
+                            <div className="space-y-2 border-t pt-3 mt-3">
+                              <div className="flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                  <Shield className="h-4 w-4 text-yellow-600" />
+                                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Escrow Payment Required
+                                  </span>
+                                </div>
+                                <FundEscrowDialog 
+                                  gigId={gig.id}
+                                  trigger={
+                                    <Button 
+                                      size="sm" 
+                                      className="bg-green-600 hover:bg-green-700"
+                                      data-testid={`fund-escrow-${gig.id}`}
+                                    >
+                                      <Shield className="h-4 w-4 mr-2" />
+                                      Fund Escrow (₦{(gig.budget * 1.12).toLocaleString()})
+                                    </Button>
+                                  }
+                                />
+                              </div>
+                            </div>
+                          )}
 
                           {gig.status === 'assigned' && gig.posterId === user?.id && gig.seekerId && (
                             <div className="space-y-2 border-t pt-3 mt-3">
