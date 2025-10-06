@@ -51,10 +51,36 @@ Preferred communication style: Simple, everyday language.
 - **Nigerian Context**: AI prompts optimized for Nigerian gig economy and same-day payment focus
 
 ### Dashboard Architecture
-- **Gig Seeker Dashboard**: Browse gigs, AI recommendations, application tracking, profile management
-- **Gig Poster Dashboard**: Create gigs, manage posted gigs, analytics, business profile
+- **Gig Seeker Dashboard**: 
+  - Prominent wallet section showing available balance and pending payments
+  - Browse gigs with dual search (title + location) and sidebar filters
+  - AI recommendations and application tracking
+  - Pending payment indicators for gigs awaiting completion confirmation
+  - Fund wallet and withdraw options
+  - Profile management with video calls integration
+- **Gig Poster Dashboard**: 
+  - Prominent wallet section showing available balance, total spent, and funds in escrow
+  - Create and manage posted gigs with modern job portal design
+  - View applications and assign seekers to gigs
+  - Fund escrow payment (with 12% platform fee disclosure)
+  - Analytics, business profile, and video calls
+  - Completion confirmation for work approval/refund
 - **Real-time Updates**: Optimistic updates and cache invalidation for immediate UI feedback
 - **Responsive Design**: Mobile-first approach optimized for Nigerian youth usage patterns
+
+### Escrow Payment System
+- **Wallet Management**: Each user has a wallet with available balance, pending balance (in escrow), and transaction history
+- **Payment Workflow**:
+  1. Poster assigns seeker to gig → Status: "assigned_pending_funding"
+  2. Poster funds escrow (gig amount + 12% platform fee) → Status: "assigned"
+  3. Money held securely in escrow (visible in pending balance)
+  4. Seeker completes work and marks as complete → Status: "pending_completion"
+  5. Poster confirms completion → Status: "awaiting_mutual_confirmation"
+  6. Both parties confirm → Payment released to seeker, Status: "completed"
+  7. If poster doesn't confirm or rejects → Refund issued to poster
+- **Fund/Withdraw**: Users can fund wallets via payment providers and withdraw earnings to verified payment methods
+- **Platform Fee**: 12% fee included in escrow funding, deducted from poster's payment
+- **Payment Security**: All payments held in escrow until mutual confirmation of gig completion
 
 ## External Dependencies
 
