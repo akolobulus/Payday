@@ -13,9 +13,8 @@ import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { WalletBalance, PaymentMethodSetup, FundEscrowDialog, EscrowStatus, formatNaira } from "@/components/ui/payment-components";
 import { WalletTopUp } from "@/components/ui/wallet-topup";
-import { ChatList } from "@/components/ui/chat-components";
 import { ProfileEdit } from "@/components/ui/profile-edit";
-import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield } from "lucide-react";
+import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -33,8 +32,10 @@ type GigFormData = z.infer<typeof gigFormSchema>;
 
 export default function GigPosterDashboard() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const itemsPerPage = 6;
   
   const { data: user } = useQuery<User>({
     queryKey: ['/api/user/profile']
@@ -83,6 +84,10 @@ export default function GigPosterDashboard() {
       queryClient.invalidateQueries({ queryKey: ['/api/gigs/analysis'] });
       setIsCreateModalOpen(false);
       form.reset();
+      toast({
+        title: "Gig created!",
+        description: "Your gig has been posted successfully.",
+      });
     },
   });
 
@@ -163,19 +168,23 @@ export default function GigPosterDashboard() {
     }
   };
 
+  const totalPages = Math.ceil((myGigs?.length || 0) / itemsPerPage);
+  const paginatedGigs = myGigs?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  ) || [];
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 pt-20">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-6 bg-gray-200 rounded w-1/2"></div>
-                </CardHeader>
-              </Card>
-            ))}
+      <div className="min-h-screen bg-white dark:bg-gray-900 pt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse space-y-8">
+            <div className="h-48 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -183,654 +192,653 @@ export default function GigPosterDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 pt-20">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-green-600 to-green-800 rounded-2xl p-8 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-3xl font-bold mb-2" data-testid="dashboard-title">
-                Welcome back, {user?.firstName}! 💼
-              </h1>
-              <p className="text-green-100 text-lg">
-                Manage your gigs and find the perfect talent for your tasks.
-              </p>
-            </div>
-            
-            <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-              <DialogTrigger asChild>
-                <Button variant="secondary" size="lg" data-testid="create-gig-button">
-                  <Plus className="h-5 w-5 mr-2" />
-                  Post New Gig
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Create New Gig</DialogTitle>
-                  <DialogDescription>
-                    Post a new gig to find the right talent for your task.
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                    <FormField
-                      control={form.control}
-                      name="title"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Gig Title</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g. Social Media Content Creation" {...field} data-testid="gig-title-input" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea 
-                              placeholder="Describe what you need done, requirements, and expectations..."
-                              className="min-h-[100px]"
-                              {...field} 
-                              data-testid="gig-description-input"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="budget"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Budget (₦)</FormLabel>
-                            <FormControl>
-                              <Input 
-                                type="number" 
-                                placeholder="5000"
-                                {...field} 
-                                onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                                data-testid="gig-budget-input"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="estimatedDuration"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Estimated Duration</FormLabel>
-                            <FormControl>
-                              <Input placeholder="2-3 hours" {...field} data-testid="gig-duration-input" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="category"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Category</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger data-testid="gig-category-select">
-                                  <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="delivery">Delivery</SelectItem>
-                                <SelectItem value="tutoring">Tutoring</SelectItem>
-                                <SelectItem value="cleaning">Cleaning</SelectItem>
-                                <SelectItem value="data-entry">Data Entry</SelectItem>
-                                <SelectItem value="social-media">Social Media</SelectItem>
-                                <SelectItem value="photography">Photography</SelectItem>
-                                <SelectItem value="content-creation">Content Creation</SelectItem>
-                                <SelectItem value="customer-service">Customer Service</SelectItem>
-                                <SelectItem value="handyman">Handyman</SelectItem>
-                                <SelectItem value="event-assistance">Event Assistance</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="urgency"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Urgency</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger data-testid="gig-urgency-select">
-                                  <SelectValue placeholder="Select urgency" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="low">Low - Within a week</SelectItem>
-                                <SelectItem value="medium">Medium - Within 2-3 days</SelectItem>
-                                <SelectItem value="high">High - Today/Tomorrow</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <FormField
-                      control={form.control}
-                      name="location"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Location</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Jos, Plateau or Remote" {...field} data-testid="gig-location-input" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="skillsRequiredText"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Required Skills</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="photography, editing, social media (comma separated)"
-                              {...field} 
-                              data-testid="gig-skills-input"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="flex space-x-4 pt-4">
-                      <Button 
-                        type="submit" 
-                        disabled={createGigMutation.isPending}
-                        data-testid="submit-gig-button"
-                      >
-                        {createGigMutation.isPending ? 'Creating...' : 'Create Gig'}
-                      </Button>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => setIsCreateModalOpen(false)}
-                        data-testid="cancel-gig-button"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+    <div className="min-h-screen bg-white dark:bg-gray-900 pt-20">
+      <Tabs defaultValue="gigs" className="w-full">
+        <div className="border-b border-gray-200 dark:border-gray-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <TabsList className="grid w-full max-w-3xl grid-cols-6 bg-transparent border-0 h-auto p-0">
+              <TabsTrigger 
+                value="gigs" 
+                data-testid="tab-gigs"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+              >
+                My Gigs
+              </TabsTrigger>
+              <TabsTrigger 
+                value="chat" 
+                data-testid="tab-chat"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+              >
+                Chat
+              </TabsTrigger>
+              <TabsTrigger 
+                value="video-calls" 
+                data-testid="tab-video-calls"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+              >
+                Video Calls
+              </TabsTrigger>
+              <TabsTrigger 
+                value="analytics" 
+                data-testid="tab-analytics"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+              >
+                Analytics
+              </TabsTrigger>
+              <TabsTrigger 
+                value="reviews" 
+                data-testid="tab-reviews"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+              >
+                Reviews
+              </TabsTrigger>
+              <TabsTrigger 
+                value="profile" 
+                data-testid="tab-profile"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+              >
+                Profile
+              </TabsTrigger>
+            </TabsList>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Gigs Posted</CardTitle>
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="total-gigs">
-                {myGigs?.length || 0}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Gigs</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="active-gigs">
-                {myGigs?.filter(g => g.status === 'open' || g.status === 'assigned').length || 0}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="gigs" className="mt-0">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-800 dark:to-gray-900 py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2" data-testid="dashboard-title">
+                    Welcome back, {user?.firstName}! 💼
+                  </h1>
+                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                    Manage your gigs and find the perfect talent for your tasks.
+                  </p>
+                </div>
+                
+                <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-green-600 hover:bg-green-700 text-white h-12 px-6" data-testid="create-gig-button">
+                      <Plus className="h-5 w-5 mr-2" />
+                      Post New Gig
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Create New Gig</DialogTitle>
+                      <DialogDescription>
+                        Post a new gig to find the right talent for your task.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="title"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Gig Title</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g. Social Media Content Creation" {...field} data-testid="gig-title-input" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed Gigs</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="completed-gigs">
-                {myGigs?.filter(g => g.status === 'completed').length || 0}
-              </div>
-            </CardContent>
-          </Card>
+                        <FormField
+                          control={form.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Description</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="Describe what you need done, requirements, and expectations..."
+                                  className="min-h-[100px]"
+                                  {...field} 
+                                  data-testid="gig-description-input"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="total-spent">
-                ₦{myGigs?.filter(g => g.status === 'completed')
-                  .reduce((sum, g) => sum + g.budget, 0).toLocaleString() || '0'}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="budget"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Budget (₦)</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="number" 
+                                    placeholder="5000"
+                                    {...field} 
+                                    onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                                    data-testid="gig-budget-input"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-        {/* Main Content */}
-        <Tabs defaultValue="gigs" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="gigs" data-testid="tab-gigs">My Gigs</TabsTrigger>
-            <TabsTrigger value="chat" data-testid="tab-chat">Chat</TabsTrigger>
-            <TabsTrigger value="video-calls" data-testid="tab-video-calls">Video Calls</TabsTrigger>
-            <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
-            <TabsTrigger value="reviews" data-testid="tab-reviews">Reviews</TabsTrigger>
-            <TabsTrigger value="profile" data-testid="tab-profile">Business Profile</TabsTrigger>
-          </TabsList>
+                          <FormField
+                            control={form.control}
+                            name="estimatedDuration"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Estimated Duration</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="2-3 hours" {...field} data-testid="gig-duration-input" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
 
-          <TabsContent value="gigs" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-bold">My Posted Gigs</h2>
-            </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="category"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Category</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="gig-category-select">
+                                      <SelectValue placeholder="Select category" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="delivery">Delivery</SelectItem>
+                                    <SelectItem value="tutoring">Tutoring</SelectItem>
+                                    <SelectItem value="cleaning">Cleaning</SelectItem>
+                                    <SelectItem value="data-entry">Data Entry</SelectItem>
+                                    <SelectItem value="social-media">Social Media</SelectItem>
+                                    <SelectItem value="photography">Photography</SelectItem>
+                                    <SelectItem value="content-creation">Content Creation</SelectItem>
+                                    <SelectItem value="customer-service">Customer Service</SelectItem>
+                                    <SelectItem value="handyman">Handyman</SelectItem>
+                                    <SelectItem value="event-assistance">Event Assistance</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myGigs?.map((gig) => (
-                <Card key={gig.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg" data-testid={`gig-title-${gig.id}`}>
-                        {gig.title}
-                      </CardTitle>
-                      <div className="flex space-x-2">
-                        <Badge variant={getGigStatusColor(gig.status)}>
-                          {getGigStatusDisplay(gig.status)}
-                        </Badge>
-                        <Badge variant={getUrgencyColor(gig.urgency)}>
-                          {gig.urgency}
-                        </Badge>
-                      </div>
-                    </div>
-                    <CardDescription className="text-sm" data-testid={`gig-description-${gig.id}`}>
-                      {gig.description.substring(0, 100)}...
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <DollarSign className="h-4 w-4 text-green-600" />
-                        <span className="font-bold text-green-600" data-testid={`gig-budget-${gig.id}`}>
-                          ₦{gig.budget.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-1 text-gray-500">
-                        <Clock className="h-4 w-4" />
-                        <span className="text-sm" data-testid={`gig-duration-${gig.id}`}>
-                          {gig.estimatedDuration}
-                        </span>
-                      </div>
-                    </div>
+                          <FormField
+                            control={form.control}
+                            name="urgency"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Urgency</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger data-testid="gig-urgency-select">
+                                      <SelectValue placeholder="Select urgency" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="low">Low - Within a week</SelectItem>
+                                    <SelectItem value="medium">Medium - Within 2-3 days</SelectItem>
+                                    <SelectItem value="high">High - Today/Tomorrow</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
 
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-sm" data-testid={`gig-location-${gig.id}`}>
-                        {gig.location}
-                      </span>
-                    </div>
+                        <FormField
+                          control={form.control}
+                          name="location"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Location</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Jos, Plateau or Remote" {...field} data-testid="gig-location-input" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    <div className="flex flex-wrap gap-2">
-                      {gig.skillsRequired.slice(0, 3).map((skill, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                      {gig.skillsRequired.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{gig.skillsRequired.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
+                        <FormField
+                          control={form.control}
+                          name="skillsRequiredText"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Required Skills</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="photography, editing, social media (comma separated)"
+                                  {...field} 
+                                  data-testid="gig-skills-input"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
 
-                    {/* Video Call Button for assigned gigs */}
-                    {gig.status === 'assigned' && gig.posterId === user?.id && gig.seekerId && (
-                      <div className="space-y-2 border-t pt-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Video Interview Available
-                          </span>
-                          <Button
-                            size="sm"
-                            onClick={() => createVideoCallMutation.mutate(gig.id)}
-                            disabled={createVideoCallMutation.isPending}
-                            className="flex items-center space-x-2"
-                            data-testid={`button-start-call-${gig.id}`}
+                        <div className="flex space-x-4 pt-4">
+                          <Button 
+                            type="submit" 
+                            disabled={createGigMutation.isPending}
+                            className="bg-green-600 hover:bg-green-700"
+                            data-testid="submit-gig-button"
                           >
-                            <Video className="h-4 w-4" />
-                            <span>{createVideoCallMutation.isPending ? 'Starting...' : 'Start Video Call'}</span>
+                            {createGigMutation.isPending ? 'Creating...' : 'Create Gig'}
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => setIsCreateModalOpen(false)}
+                            data-testid="cancel-gig-button"
+                          >
+                            Cancel
                           </Button>
                         </div>
-                        <p className="text-xs text-gray-500">
-                          Connect with the assigned gig seeker to discuss details and expectations
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Completion Confirmation Component for assigned and completion states */}
-                    {['assigned', 'pending_completion', 'awaiting_mutual_confirmation'].includes(gig.status) && user && (
-                      <div className="space-y-2 border-t pt-3">
-                        <CompletionConfirmation 
-                          gig={gig} 
-                          currentUser={user}
-                          onStatusUpdate={() => {
-                            queryClient.invalidateQueries({ queryKey: ['/api/gigs/posted'] });
-                            queryClient.invalidateQueries({ queryKey: ['/api/gigs/analysis'] });
-                          }}
-                        />
-                      </div>
-                    )}
-
-                    {gig.status === 'open' && (
-                      <Button 
-                        variant="outline" 
-                        className="w-full" 
-                        onClick={() => updateGigStatusMutation.mutate({
-                          gigId: gig.id, 
-                          status: 'cancelled'
-                        })}
-                        disabled={updateGigStatusMutation.isPending}
-                        data-testid={`cancel-gig-${gig.id}`}
-                      >
-                        Cancel Gig
-                      </Button>
-                    )}
-
-                    {gig.status === 'completed' && gig.seekerId && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Assigned to:</span>
-                          <UserRating userId={gig.seekerId} size="sm" />
-                        </div>
-                        <ReviewForm 
-                          gig={gig}
-                          revieweeId={gig.seekerId}
-                          revieweeName="Gig Seeker"
-                          onSuccess={() => {
-                            queryClient.invalidateQueries({ queryKey: ['/api/user', gig.seekerId, 'rating'] });
-                          }}
-                        />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
+          </div>
 
-            {!myGigs?.length && (
-              <Card className="p-8 text-center">
-                <CardContent className="space-y-4">
-                  <Briefcase className="h-12 w-12 text-gray-400 mx-auto" />
-                  <h3 className="text-lg font-semibold">No gigs posted yet</h3>
-                  <p className="text-gray-500">
-                    Post your first gig to start finding talented individuals for your tasks.
-                  </p>
-                  <Button onClick={() => setIsCreateModalOpen(true)} data-testid="post-first-gig">
-                    Post Your First Gig
-                  </Button>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Gigs Posted</CardTitle>
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="total-gigs">
+                    {myGigs?.length || 0}
+                  </div>
                 </CardContent>
               </Card>
-            )}
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gig Performance Analytics</CardTitle>
-                <CardDescription>
-                  Insights about your posted gigs and success rates
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Most Popular Categories</h4>
-                    {myGigs && myGigs.length > 0 ? (
-                      <div className="space-y-2">
-                        {Object.entries(
-                          myGigs.reduce((acc, gig) => {
-                            acc[gig.category] = (acc[gig.category] || 0) + 1;
-                            return acc;
-                          }, {} as Record<string, number>)
-                        ).map(([category, count]) => (
-                          <div key={category} className="flex justify-between">
-                            <span className="capitalize">{category}</span>
-                            <span className="font-medium">{count}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-gray-500">No data available yet</p>
-                    )}
+              
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Gigs</CardTitle>
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="active-gigs">
+                    {myGigs?.filter(g => g.status === 'open' || g.status === 'assigned').length || 0}
                   </div>
+                </CardContent>
+              </Card>
 
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Success Rate</h4>
-                    <div className="text-2xl font-bold text-green-600">
-                      {myGigs && myGigs.length > 0 
-                        ? `${Math.round((myGigs.filter(g => g.status === 'completed').length / myGigs.length) * 100)}%`
-                        : '0%'
-                      }
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      {myGigs?.filter(g => g.status === 'completed').length || 0} of {myGigs?.length || 0} gigs completed
-                    </p>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Completed Gigs</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="completed-gigs">
+                    {myGigs?.filter(g => g.status === 'completed').length || 0}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+              </Card>
 
-          <TabsContent value="chat" className="space-y-4">
-            {user && <ChatList currentUser={user} />}
-          </TabsContent>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="total-spent">
+                    ₦{myGigs?.filter(g => g.status === 'completed')
+                      .reduce((sum, g) => sum + g.budget, 0).toLocaleString() || '0'}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          <TabsContent value="video-calls" className="space-y-4">
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Video Call History</h3>
-                <Badge variant="secondary" data-testid="video-calls-count">
-                  {videoCallHistory?.length || 0} calls
-                </Badge>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Posted Gigs</h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Showing {paginatedGigs.length} of {myGigs?.length || 0} gigs
+                </p>
               </div>
 
-              {videoCallHistory && videoCallHistory.length > 0 ? (
-                <div className="space-y-4">
-                  {videoCallHistory.map((call) => (
-                    <Card key={call.id}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <PhoneCall className="h-4 w-4 text-green-500" />
-                              <span className="font-medium" data-testid={`call-gig-title-${call.id}`}>
-                                {call.gig?.title || 'Unknown Gig'}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                              <div className="flex items-center space-x-1">
-                                <Clock className="h-3 w-3" />
-                                <span>{new Date(call.createdAt).toLocaleDateString()}</span>
-                              </div>
-                              {call.duration && (
-                                <div className="flex items-center space-x-1">
-                                  <Video className="h-3 w-3" />
-                                  <span>{Math.floor(call.duration / 60)}:{(call.duration % 60).toString().padStart(2, '0')}</span>
+              <div className="space-y-4">
+                {paginatedGigs.map((gig) => (
+                  <Card key={gig.id} className="hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
+                    <CardContent className="p-6">
+                      <div className="flex gap-4">
+                        <div className="flex-shrink-0">
+                          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                            <Building2 className="w-8 h-8 text-white" />
+                          </div>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-1" data-testid={`gig-title-${gig.id}`}>
+                                {gig.title}
+                              </h4>
+                              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                <div className="flex items-center gap-1">
+                                  <MapPin className="w-4 h-4" />
+                                  <span data-testid={`gig-location-${gig.id}`}>{gig.location}</span>
                                 </div>
-                              )}
+                                <Badge variant={getGigStatusColor(gig.status)}>
+                                  {getGigStatusDisplay(gig.status)}
+                                </Badge>
+                                <Badge variant="outline" className="capitalize">
+                                  {gig.urgency} Priority
+                                </Badge>
+                              </div>
                             </div>
-                            
-                            <div className="text-sm text-gray-500">
-                              With: {call.participants?.poster?.id === user?.id 
-                                ? call.participants?.seeker?.name 
-                                : call.participants?.poster?.name}
+                            <div className="flex flex-col items-end gap-2">
+                              <div className="text-2xl font-bold text-green-600 dark:text-green-500" data-testid={`gig-budget-${gig.id}`}>
+                                ₦{gig.budget.toLocaleString()}
+                              </div>
                             </div>
                           </div>
-                          
-                          <Badge 
-                            variant={call.status === 'ended' ? 'outline' : call.status === 'active' ? 'default' : 'secondary'}
-                            data-testid={`call-status-${call.id}`}
-                          >
-                            {call.status}
-                          </Badge>
+
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2" data-testid={`gig-description-${gig.id}`}>
+                            {gig.description}
+                          </p>
+
+                          <div className="flex justify-between items-center">
+                            <div className="flex flex-wrap gap-2">
+                              {gig.skillsRequired.slice(0, 3).map((skill, index) => (
+                                <Badge key={index} variant="secondary" className="text-xs">
+                                  {skill}
+                                </Badge>
+                              ))}
+                              {gig.skillsRequired.length > 3 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{gig.skillsRequired.length - 3}
+                                </Badge>
+                              )}
+                              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 ml-2">
+                                <Clock className="w-3 h-3" />
+                                <span data-testid={`gig-duration-${gig.id}`}>{gig.estimatedDuration}</span>
+                              </div>
+                            </div>
+
+                            {gig.status === 'open' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateGigStatusMutation.mutate({ gigId: gig.id, status: 'cancelled' })}
+                                disabled={updateGigStatusMutation.isPending}
+                                data-testid={`cancel-gig-${gig.id}`}
+                              >
+                                Cancel Gig
+                              </Button>
+                            )}
+                          </div>
+
+                          {gig.status === 'assigned' && gig.posterId === user?.id && gig.seekerId && (
+                            <div className="space-y-2 border-t pt-3 mt-3">
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Video Interview Available
+                                </span>
+                                <Button
+                                  size="sm"
+                                  onClick={() => createVideoCallMutation.mutate(gig.id)}
+                                  disabled={createVideoCallMutation.isPending}
+                                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                                  data-testid={`button-start-call-${gig.id}`}
+                                >
+                                  <Video className="h-4 w-4" />
+                                  <span>{createVideoCallMutation.isPending ? 'Starting...' : 'Start Video Call'}</span>
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          {['assigned', 'pending_completion', 'awaiting_mutual_confirmation'].includes(gig.status) && user && (
+                            <div className="space-y-2 border-t pt-3 mt-3">
+                              <CompletionConfirmation 
+                                gig={gig} 
+                                currentUser={user}
+                                onStatusUpdate={() => {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/gigs/posted'] });
+                                  queryClient.invalidateQueries({ queryKey: ['/api/gigs/analysis'] });
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          {gig.status === 'completed' && gig.seekerId && (
+                            <div className="space-y-2 border-t pt-3 mt-3">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm text-gray-600">Gig Seeker:</span>
+                                <UserRating userId={gig.seekerId} size="sm" />
+                              </div>
+                              <ReviewForm 
+                                gig={gig}
+                                revieweeId={gig.seekerId}
+                                revieweeName="Gig Seeker"
+                                onSuccess={() => {
+                                  queryClient.invalidateQueries({ queryKey: ['/api/user', gig.seekerId, 'rating'] });
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-8 text-center">
-                  <CardContent className="space-y-4">
-                    <Video className="h-12 w-12 text-gray-400 mx-auto" />
-                    <h3 className="text-lg font-semibold">No Video Calls Yet</h3>
-                    <p className="text-gray-500">
-                      Video call history will appear here after you start having video interviews with gig seekers.
-                    </p>
-                  </CardContent>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {!myGigs?.length && (
+                <Card className="p-12 text-center border-dashed">
+                  <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No gigs posted yet</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    Click the "Post New Gig" button above to create your first gig
+                  </p>
                 </Card>
               )}
-            </div>
-          </TabsContent>
 
-          <TabsContent value="reviews" className="space-y-4">
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-2 mt-8">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    data-testid="pagination-prev"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      onClick={() => setCurrentPage(page)}
+                      className={currentPage === page ? "bg-green-600 hover:bg-green-700" : ""}
+                      data-testid={`pagination-${page}`}
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    data-testid="pagination-next"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="chat" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5" />
-                  My Reviews & Ratings
-                </CardTitle>
-                <CardDescription>
-                  See what gig seekers are saying about working with you
+                <CardTitle className="text-2xl">Messages</CardTitle>
+                <CardDescription className="text-base">
+                  Chat with gig seekers about your posted gigs
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  {/* User's Overall Rating */}
-                  <div className="text-center p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-2">Your Overall Rating</h3>
-                    {user && <UserRating userId={user.id} size="lg" showCount />}
-                  </div>
-                  
-                  {/* Reviews Received */}
-                  <div>
-                    <h4 className="text-md font-semibold mb-4">Recent Reviews</h4>
-                    <p className="text-gray-500 text-center py-8">
-                      Reviews will appear here after gig seekers complete your gigs and leave feedback.
-                    </p>
-                  </div>
-                </div>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Your chat conversations will appear here once candidates apply to your gigs.
+                </p>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        </TabsContent>
 
-          <TabsContent value="profile" className="space-y-4">
+        <TabsContent value="video-calls" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-2xl font-bold">Video Call History</h3>
+              <Badge variant="secondary" data-testid="video-calls-count">
+                {videoCallHistory?.length || 0} calls
+              </Badge>
+            </div>
+
+            {videoCallHistory && videoCallHistory.length > 0 ? (
+              <div className="space-y-4">
+                {videoCallHistory.map((call) => (
+                  <Card key={call.id}>
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <PhoneCall className="h-4 w-4 text-green-500" />
+                            <span className="font-medium" data-testid={`call-gig-title-${call.id}`}>
+                              {call.gig?.title || 'Unknown Gig'}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{new Date(call.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            {call.duration && (
+                              <div className="flex items-center gap-1">
+                                <Video className="h-3 w-3" />
+                                <span>{Math.floor(call.duration / 60)}:{(call.duration % 60).toString().padStart(2, '0')}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="text-sm text-gray-500">
+                            With: {call.participants?.poster?.id === user?.id 
+                              ? call.participants?.seeker?.name 
+                              : call.participants?.poster?.name}
+                          </div>
+                        </div>
+                        
+                        <Badge 
+                          variant={call.status === 'ended' ? 'outline' : call.status === 'active' ? 'default' : 'secondary'}
+                          data-testid={`call-status-${call.id}`}
+                        >
+                          {call.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="p-12 text-center border-dashed">
+                <Video className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No video calls yet</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Your video call history will appear here once you connect with gig seekers.
+                </p>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Business Profile</CardTitle>
-                    <CardDescription>
-                      Manage your business information and preferences
-                    </CardDescription>
-                  </div>
-                  <ProfileEdit />
-                </div>
+                <CardTitle className="text-2xl">Gig Analytics</CardTitle>
+                <CardDescription className="text-base">
+                  Insights and performance metrics for your posted gigs
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">Business Name</label>
-                    <p className="text-lg" data-testid="business-name">
-                      {user?.businessName || 'Not specified'}
-                    </p>
+              <CardContent>
+                {gigAnalysis ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Average Budget</p>
+                        <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          ₦{gigAnalysis.averageBudget?.toLocaleString() || '0'}
+                        </p>
+                      </div>
+                      <div className="p-4 bg-green-50 dark:bg-green-950 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Completion Rate</p>
+                        <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {gigAnalysis.completionRate || '0'}%
+                        </p>
+                      </div>
+                      <div className="p-4 bg-purple-50 dark:bg-purple-950 rounded-lg">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Active Seekers</p>
+                        <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                          {gigAnalysis.activeApplications || 0}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Contact Person</label>
-                    <p className="text-lg" data-testid="contact-person">
-                      {user?.firstName} {user?.lastName}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">Email</label>
-                    <p className="text-lg" data-testid="business-email">
-                      {user?.email}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Location</label>
-                    <p className="text-lg" data-testid="business-location">
-                      {user?.location}
-                    </p>
-                  </div>
-                </div>
+                ) : (
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Post gigs to see analytics and insights.
+                  </p>
+                )}
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <WalletBalance />
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5 text-blue-600" />
-                    Wallet Actions
-                  </CardTitle>
-                  <CardDescription>
-                    Manage funds for escrow payments and business expenses
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <WalletTopUp />
-                  <Button variant="outline" className="w-full" disabled>
-                    <Shield className="h-4 w-4 mr-2" />
-                    Fund Escrow (Select Active Gig)
-                  </Button>
-                  <PaymentMethodSetup />
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="reviews" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Your Business Rating</CardTitle>
+                <CardDescription className="text-base">
+                  Build your reputation by completing gigs successfully
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {user && <UserRating userId={user.id} size="lg" showCount />}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="profile" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <ProfileEdit />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

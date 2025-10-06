@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { WalletBalance, PaymentMethodSetup, WithdrawalDialog, EscrowStatus, formatNaira } from "@/components/ui/payment-components";
 import { WalletTopUp } from "@/components/ui/wallet-topup";
-import { ChatList } from "@/components/ui/chat-components";
 import { ProfileEdit } from "@/components/ui/profile-edit";
-import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, DollarSign, Video, PhoneCall, Wallet, ArrowUpRight } from "lucide-react";
+import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, DollarSign, Video, PhoneCall, Wallet, ArrowUpRight, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -34,10 +34,24 @@ interface GigRecommendation {
   skillsRequired: string[];
 }
 
+const CATEGORIES = [
+  "delivery", "tutoring", "cleaning", "data-entry", "social-media",
+  "photography", "content-creation", "customer-service", "handyman", "event-assistance"
+];
+
+const LOCATIONS = [
+  "Lagos", "Abuja", "Jos", "Kano", "Port Harcourt", "Ibadan", "Remote"
+];
+
 export default function GigSeekerDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const itemsPerPage = 6;
   
   const { data: user } = useQuery<User>({
     queryKey: ['/api/user/profile']
@@ -66,6 +80,10 @@ export default function GigSeekerDashboard() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/gigs/available'] });
       queryClient.invalidateQueries({ queryKey: ['/api/gigs/my-applications'] });
+      toast({
+        title: "Application submitted!",
+        description: "Your application has been sent successfully.",
+      });
     }
   });
 
@@ -123,25 +141,57 @@ export default function GigSeekerDashboard() {
     }
   };
 
-  const filteredGigs = availableGigs?.filter(gig => 
-    gig.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    gig.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    gig.category.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const filteredGigs = availableGigs?.filter(gig => {
+    const matchesSearch = gig.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      gig.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesLocation = locationQuery === "" || 
+      gig.location.toLowerCase().includes(locationQuery.toLowerCase());
+    const matchesCategory = selectedCategories.length === 0 || 
+      selectedCategories.includes(gig.category);
+    const matchesLocationFilter = selectedLocations.length === 0 || 
+      selectedLocations.some(loc => gig.location.toLowerCase().includes(loc.toLowerCase()));
+    
+    return matchesSearch && matchesLocation && matchesCategory && matchesLocationFilter;
+  }) || [];
+
+  const totalPages = Math.ceil(filteredGigs.length / itemsPerPage);
+  const paginatedGigs = filteredGigs.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+    setCurrentPage(1);
+  };
+
+  const toggleLocation = (location: string) => {
+    setSelectedLocations(prev =>
+      prev.includes(location)
+        ? prev.filter(l => l !== location)
+        : [...prev, location]
+    );
+    setCurrentPage(1);
+  };
 
   if (gigsLoading || recLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 pt-20">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-6 bg-gray-200 rounded w-1/2"></div>
-                </CardHeader>
-              </Card>
-            ))}
+      <div className="min-h-screen bg-white dark:bg-gray-900 pt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="animate-pulse space-y-8">
+            <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              <div className="h-96 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+              <div className="lg:col-span-3 space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-48 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -149,181 +199,304 @@ export default function GigSeekerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 pt-20">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Welcome Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-8 text-white">
-          <h1 className="text-3xl font-bold mb-2" data-testid="dashboard-title">
-            Welcome back, {user?.firstName}! 👋
-          </h1>
-          <p className="text-blue-100 text-lg">
-            Ready to find your next gig? Let's get you earning today!
-          </p>
+    <div className="min-h-screen bg-white dark:bg-gray-900 pt-20">
+      <Tabs defaultValue="browse" className="w-full">
+        <div className="border-b border-gray-200 dark:border-gray-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <TabsList className="grid w-full max-w-3xl grid-cols-7 bg-transparent border-0 h-auto p-0">
+              <TabsTrigger 
+                value="browse" 
+                data-testid="tab-browse"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent"
+              >
+                Browse Gigs
+              </TabsTrigger>
+              <TabsTrigger 
+                value="recommendations" 
+                data-testid="tab-recommendations"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent"
+              >
+                AI Picks
+              </TabsTrigger>
+              <TabsTrigger 
+                value="applications" 
+                data-testid="tab-applications"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent"
+              >
+                My Applications
+              </TabsTrigger>
+              <TabsTrigger 
+                value="chat" 
+                data-testid="tab-chat"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent"
+              >
+                Chat
+              </TabsTrigger>
+              <TabsTrigger 
+                value="video-calls" 
+                data-testid="tab-video-calls"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent"
+              >
+                Video Calls
+              </TabsTrigger>
+              <TabsTrigger 
+                value="reviews" 
+                data-testid="tab-reviews"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent"
+              >
+                Reviews
+              </TabsTrigger>
+              <TabsTrigger 
+                value="profile" 
+                data-testid="tab-profile"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent"
+              >
+                Profile
+              </TabsTrigger>
+            </TabsList>
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Applications</CardTitle>
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="active-applications">
-                {myGigs?.length || 0}
+        <TabsContent value="browse" className="mt-0">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 py-16">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-8">
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4" data-testid="dashboard-title">
+                  Over {availableGigs?.length || 0}+ gigs to apply
+                </h1>
+                <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                  Your Next Big Opportunity Starts Right Here - Explore the Best Gigs and Take the First Step Toward Your Future!
+                </p>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Available Gigs</CardTitle>
-              <Search className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="available-gigs">
-                {filteredGigs.length}
+
+              <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    placeholder="Search by gig title, keywords..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="pl-12 h-14 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+                    data-testid="search-gigs"
+                  />
+                </div>
+                <div className="flex-1 relative">
+                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    placeholder="Location (e.g., Lagos, Remote)"
+                    value={locationQuery}
+                    onChange={(e) => {
+                      setLocationQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="pl-12 h-14 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+                    data-testid="search-location"
+                  />
+                </div>
+                <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white" data-testid="search-button">
+                  Search
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">AI Recommendations</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="recommendations-count">
-                {recommendations?.length || 0}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Your Skills</CardTitle>
-              <Star className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold" data-testid="skills-count">
-                {user?.skills?.length || 0}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content */}
-        <Tabs defaultValue="browse" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
-            <TabsTrigger value="browse" data-testid="tab-browse">Browse Gigs</TabsTrigger>
-            <TabsTrigger value="recommendations" data-testid="tab-recommendations">AI Recommendations</TabsTrigger>
-            <TabsTrigger value="applications" data-testid="tab-applications">My Applications</TabsTrigger>
-            <TabsTrigger value="chat" data-testid="tab-chat">Chat</TabsTrigger>
-            <TabsTrigger value="video-calls" data-testid="tab-video-calls">Video Calls</TabsTrigger>
-            <TabsTrigger value="reviews" data-testid="tab-reviews">Reviews</TabsTrigger>
-            <TabsTrigger value="profile" data-testid="tab-profile">Profile</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="browse" className="space-y-4">
-            {/* Search Bar */}
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search for gigs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-                data-testid="search-gigs"
-              />
             </div>
+          </div>
 
-            {/* Gigs Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredGigs.map((gig) => (
-                <Card key={gig.id} className="hover:shadow-lg transition-shadow">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              <div className="lg:col-span-1">
+                <Card className="sticky top-24">
                   <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg" data-testid={`gig-title-${gig.id}`}>
-                        {gig.title}
-                      </CardTitle>
-                      <Badge variant={getUrgencyColor(gig.urgency)}>
-                        {gig.urgency}
-                      </Badge>
-                    </div>
-                    <CardDescription className="text-sm" data-testid={`gig-description-${gig.id}`}>
-                      {gig.description.substring(0, 100)}...
-                    </CardDescription>
+                    <CardTitle>Filters</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <DollarSign className="h-4 w-4 text-green-600" />
-                        <span className="font-bold text-green-600" data-testid={`gig-budget-${gig.id}`}>
-                          ₦{gig.budget.toLocaleString()}
-                        </span>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <h4 className="font-semibold mb-4 text-sm">Search by Categories</h4>
+                      <div className="space-y-3">
+                        {CATEGORIES.map((category) => (
+                          <div key={category} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`cat-${category}`}
+                              checked={selectedCategories.includes(category)}
+                              onCheckedChange={() => toggleCategory(category)}
+                              data-testid={`filter-category-${category}`}
+                            />
+                            <label
+                              htmlFor={`cat-${category}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 capitalize cursor-pointer"
+                            >
+                              {category.replace('-', ' ')}
+                            </label>
+                          </div>
+                        ))}
                       </div>
-                      <div className="flex items-center space-x-1 text-gray-500">
-                        <Clock className="h-4 w-4" />
-                        <span className="text-sm" data-testid={`gig-duration-${gig.id}`}>
-                          {gig.estimatedDuration}
-                        </span>
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <h4 className="font-semibold mb-4 text-sm">Search by Location</h4>
+                      <div className="space-y-3">
+                        {LOCATIONS.map((location) => (
+                          <div key={location} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`loc-${location}`}
+                              checked={selectedLocations.includes(location)}
+                              onCheckedChange={() => toggleLocation(location)}
+                              data-testid={`filter-location-${location}`}
+                            />
+                            <label
+                              htmlFor={`loc-${location}`}
+                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            >
+                              {location}
+                            </label>
+                          </div>
+                        ))}
                       </div>
                     </div>
-
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <MapPin className="h-4 w-4" />
-                      <span className="text-sm" data-testid={`gig-location-${gig.id}`}>
-                        {gig.location}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {gig.skillsRequired.slice(0, 3).map((skill, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {skill}
-                        </Badge>
-                      ))}
-                      {gig.skillsRequired.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{gig.skillsRequired.length - 3} more
-                        </Badge>
-                      )}
-                    </div>
-
-                    <Button 
-                      className="w-full" 
-                      onClick={() => applyToGigMutation.mutate(gig.id)}
-                      disabled={applyToGigMutation.isPending}
-                      data-testid={`apply-gig-${gig.id}`}
-                    >
-                      {applyToGigMutation.isPending ? 'Applying...' : 'Apply Now'}
-                    </Button>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              </div>
 
-            {filteredGigs.length === 0 && (
-              <Card className="p-8 text-center">
-                <CardContent className="space-y-4">
-                  <Search className="h-12 w-12 text-gray-400 mx-auto" />
-                  <h3 className="text-lg font-semibold">No gigs found</h3>
-                  <p className="text-gray-500">
-                    Try adjusting your search or check back later for new opportunities.
+              <div className="lg:col-span-3 space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Latest gigs</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Showing {paginatedGigs.length} of {filteredGigs.length} gigs
                   </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+                </div>
 
-          <TabsContent value="recommendations" className="space-y-4">
+                <div className="space-y-4">
+                  {paginatedGigs.map((gig) => (
+                    <Card key={gig.id} className="hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700" data-testid={`gig-card-${gig.id}`}>
+                      <CardContent className="p-6">
+                        <div className="flex gap-4">
+                          <div className="flex-shrink-0">
+                            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                              <Building2 className="w-8 h-8 text-white" />
+                            </div>
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-1" data-testid={`gig-title-${gig.id}`}>
+                                  {gig.title}
+                                </h4>
+                                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                  <div className="flex items-center gap-1">
+                                    <MapPin className="w-4 h-4" />
+                                    <span data-testid={`gig-location-${gig.id}`}>{gig.location}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Badge variant="outline" className="capitalize">
+                                      {gig.urgency} Priority
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex flex-col items-end gap-2">
+                                <div className="text-2xl font-bold text-green-600 dark:text-green-500" data-testid={`gig-budget-${gig.id}`}>
+                                  ₦{gig.budget.toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2" data-testid={`gig-description-${gig.id}`}>
+                              {gig.description}
+                            </p>
+
+                            <div className="flex justify-between items-center">
+                              <div className="flex flex-wrap gap-2">
+                                {gig.skillsRequired.slice(0, 3).map((skill, index) => (
+                                  <Badge key={index} variant="secondary" className="text-xs">
+                                    {skill}
+                                  </Badge>
+                                ))}
+                                {gig.skillsRequired.length > 3 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{gig.skillsRequired.length - 3}
+                                  </Badge>
+                                )}
+                                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 ml-2">
+                                  <Clock className="w-3 h-3" />
+                                  <span data-testid={`gig-duration-${gig.id}`}>{gig.estimatedDuration}</span>
+                                </div>
+                              </div>
+
+                              <Button
+                                onClick={() => applyToGigMutation.mutate(gig.id)}
+                                disabled={applyToGigMutation.isPending}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                data-testid={`apply-gig-${gig.id}`}
+                              >
+                                Apply now
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {paginatedGigs.length === 0 && (
+                  <Card className="p-12 text-center border-dashed">
+                    <Search className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No gigs found</h3>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Try adjusting your filters or search criteria
+                    </p>
+                  </Card>
+                )}
+
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center gap-2 mt-8">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      data-testid="pagination-prev"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        onClick={() => setCurrentPage(page)}
+                        className={currentPage === page ? "bg-blue-600 hover:bg-blue-700" : ""}
+                        data-testid={`pagination-${page}`}
+                      >
+                        {page}
+                      </Button>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      data-testid="pagination-next"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="recommendations" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <TrendingUp className="h-5 w-5" />
-                  <span>AI-Powered Recommendations</span>
+                <CardTitle className="flex items-center gap-2 text-2xl">
+                  <TrendingUp className="h-6 w-6 text-blue-600" />
+                  AI-Powered Recommendations
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-base">
                   Personalized gig suggestions based on your skills and preferences
                 </CardDescription>
               </CardHeader>
@@ -331,35 +504,34 @@ export default function GigSeekerDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {recommendations?.map((rec, index) => (
-                <Card key={index} className="border-l-4 border-l-blue-500">
+                <Card key={index} className="border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
                   <CardHeader>
-                    <CardTitle className="text-lg" data-testid={`recommendation-title-${index}`}>
-                      {rec.title}
-                    </CardTitle>
-                    <CardDescription data-testid={`recommendation-description-${index}`}>
+                    <div className="flex justify-between items-start">
+                      <CardTitle className="text-lg" data-testid={`recommendation-title-${index}`}>
+                        {rec.title}
+                      </CardTitle>
+                      <Badge variant={getUrgencyColor(rec.urgency)} className="capitalize">
+                        {rec.urgency}
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-sm" data-testid={`recommendation-description-${index}`}>
                       {rec.description}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-green-600" data-testid={`recommendation-budget-${index}`}>
+                      <span className="text-2xl font-bold text-green-600" data-testid={`recommendation-budget-${index}`}>
                         ₦{rec.budget.toLocaleString()}
                       </span>
-                      <Badge variant={getUrgencyColor(rec.urgency)}>
-                        {rec.urgency}
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <Clock className="h-4 w-4" />
-                      <span className="text-sm" data-testid={`recommendation-duration-${index}`}>
-                        {rec.estimatedDuration}
-                      </span>
+                      <div className="flex items-center gap-1 text-sm text-gray-500">
+                        <Clock className="h-4 w-4" />
+                        <span data-testid={`recommendation-duration-${index}`}>{rec.estimatedDuration}</span>
+                      </div>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                       {rec.skillsRequired.map((skill, skillIndex) => (
-                        <Badge key={skillIndex} variant="outline" className="text-xs">
+                        <Badge key={skillIndex} variant="secondary" className="text-xs">
                           {skill}
                         </Badge>
                       ))}
@@ -370,23 +542,23 @@ export default function GigSeekerDashboard() {
             </div>
 
             {!recommendations?.length && (
-              <Card className="p-8 text-center">
-                <CardContent className="space-y-4">
-                  <TrendingUp className="h-12 w-12 text-gray-400 mx-auto" />
-                  <h3 className="text-lg font-semibold">Building your recommendations</h3>
-                  <p className="text-gray-500">
-                    Complete your profile and add skills to get personalized gig recommendations.
-                  </p>
-                </CardContent>
+              <Card className="p-12 text-center border-dashed">
+                <TrendingUp className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Building your recommendations</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Complete your profile and add skills to get personalized gig recommendations.
+                </p>
               </Card>
             )}
-          </TabsContent>
+          </div>
+        </TabsContent>
 
-          <TabsContent value="applications" className="space-y-4">
+        <TabsContent value="applications" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>My Applications</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-2xl">My Applications</CardTitle>
+                <CardDescription className="text-base">
                   Track your gig applications and their status
                 </CardDescription>
               </CardHeader>
@@ -411,7 +583,6 @@ export default function GigSeekerDashboard() {
                       <span className="text-sm text-gray-500">{gig.estimatedDuration}</span>
                     </div>
                     
-                    {/* Video Call Button for assigned gigs */}
                     {gig.status === 'assigned' && gig.seekerId === user?.id && (
                       <div className="space-y-2 border-t pt-3">
                         <div className="flex justify-between items-center">
@@ -422,7 +593,7 @@ export default function GigSeekerDashboard() {
                             size="sm"
                             onClick={() => createVideoCallMutation.mutate(gig.id)}
                             disabled={createVideoCallMutation.isPending}
-                            className="flex items-center space-x-2"
+                            className="flex items-center gap-2"
                             data-testid={`button-start-call-${gig.id}`}
                           >
                             <Video className="h-4 w-4" />
@@ -435,7 +606,6 @@ export default function GigSeekerDashboard() {
                       </div>
                     )}
 
-                    {/* Completion Confirmation Component for assigned and completion states */}
                     {['assigned', 'pending_completion', 'awaiting_mutual_confirmation'].includes(gig.status) && user && (
                       <div className="space-y-2 border-t pt-3">
                         <CompletionConfirmation 
@@ -471,192 +641,123 @@ export default function GigSeekerDashboard() {
             </div>
 
             {!myGigs?.length && (
-              <Card className="p-8 text-center">
-                <CardContent className="space-y-4">
-                  <Briefcase className="h-12 w-12 text-gray-400 mx-auto" />
-                  <h3 className="text-lg font-semibold">No applications yet</h3>
-                  <p className="text-gray-500">
-                    Start browsing gigs and apply to opportunities that match your skills.
-                  </p>
-                </CardContent>
+              <Card className="p-12 text-center border-dashed">
+                <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No applications yet</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Start browsing gigs and apply to opportunities that match your skills.
+                </p>
               </Card>
             )}
-          </TabsContent>
+          </div>
+        </TabsContent>
 
-          <TabsContent value="video-calls" className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">Video Call History</h3>
-                <Badge variant="secondary" data-testid="video-calls-count">
-                  {videoCallHistory?.length || 0} calls
-                </Badge>
-              </div>
-
-              {videoCallHistory && videoCallHistory.length > 0 ? (
-                <div className="space-y-4">
-                  {videoCallHistory.map((call) => (
-                    <Card key={call.id}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="space-y-2">
-                            <div className="flex items-center space-x-2">
-                              <PhoneCall className="h-4 w-4 text-blue-500" />
-                              <span className="font-medium" data-testid={`call-gig-title-${call.id}`}>
-                                {call.gig?.title || 'Unknown Gig'}
-                              </span>
-                            </div>
-                            
-                            <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                              <div className="flex items-center space-x-1">
-                                <Clock className="h-3 w-3" />
-                                <span>{new Date(call.createdAt).toLocaleDateString()}</span>
-                              </div>
-                              {call.duration && (
-                                <div className="flex items-center space-x-1">
-                                  <Video className="h-3 w-3" />
-                                  <span>{Math.floor(call.duration / 60)}:{(call.duration % 60).toString().padStart(2, '0')}</span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div className="text-sm text-gray-500">
-                              With: {call.participants?.poster?.id === user?.id 
-                                ? call.participants?.seeker?.name 
-                                : call.participants?.poster?.name}
-                            </div>
-                          </div>
-                          
-                          <Badge 
-                            variant={call.status === 'ended' ? 'outline' : call.status === 'active' ? 'default' : 'secondary'}
-                            data-testid={`call-status-${call.id}`}
-                          >
-                            {call.status}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                <Card className="p-8 text-center">
-                  <CardContent className="space-y-4">
-                    <Video className="h-12 w-12 text-gray-400 mx-auto" />
-                    <h3 className="text-lg font-semibold">No Video Calls Yet</h3>
-                    <p className="text-gray-500">
-                      Video call history will appear here after you start having video interviews with gig posters.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="chat" className="space-y-4">
-            {user && <ChatList currentUser={user} />}
-          </TabsContent>
-
-          <TabsContent value="reviews" className="space-y-4">
+        <TabsContent value="chat" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5" />
-                  My Reviews & Ratings
-                </CardTitle>
-                <CardDescription>
-                  See what gig posters are saying about your work
+                <CardTitle className="text-2xl">Messages</CardTitle>
+                <CardDescription className="text-base">
+                  Chat with gig posters about your applications
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  {/* User's Overall Rating */}
-                  <div className="text-center p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <h3 className="text-lg font-semibold mb-2">Your Overall Rating</h3>
-                    {user && <UserRating userId={user.id} size="lg" showCount />}
-                  </div>
-                  
-                  {/* Reviews Received */}
-                  <div>
-                    <h4 className="text-md font-semibold mb-4">Recent Reviews</h4>
-                    <p className="text-gray-500 text-center py-8">
-                      Reviews will appear here after gig posters rate your completed work.
-                    </p>
-                  </div>
-                </div>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Your chat conversations will appear here once you apply to gigs.
+                </p>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        </TabsContent>
 
-          <TabsContent value="profile" className="space-y-4">
+        <TabsContent value="video-calls" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+            <div className="flex justify-between items-center">
+              <h3 className="text-2xl font-bold">Video Call History</h3>
+              <Badge variant="secondary" data-testid="video-calls-count">
+                {videoCallHistory?.length || 0} calls
+              </Badge>
+            </div>
+
+            {videoCallHistory && videoCallHistory.length > 0 ? (
+              <div className="space-y-4">
+                {videoCallHistory.map((call) => (
+                  <Card key={call.id}>
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <PhoneCall className="h-4 w-4 text-blue-500" />
+                            <span className="font-medium" data-testid={`call-gig-title-${call.id}`}>
+                              {call.gig?.title || 'Unknown Gig'}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{new Date(call.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            {call.duration && (
+                              <div className="flex items-center gap-1">
+                                <Video className="h-3 w-3" />
+                                <span>{Math.floor(call.duration / 60)}:{(call.duration % 60).toString().padStart(2, '0')}</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="text-sm text-gray-500">
+                            With: {call.participants?.poster?.id === user?.id 
+                              ? call.participants?.seeker?.name 
+                              : call.participants?.poster?.name}
+                          </div>
+                        </div>
+                        
+                        <Badge 
+                          variant={call.status === 'ended' ? 'outline' : call.status === 'active' ? 'default' : 'secondary'}
+                          data-testid={`call-status-${call.id}`}
+                        >
+                          {call.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="p-12 text-center border-dashed">
+                <Video className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">No video calls yet</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Your video call history will appear here once you start connecting with gig posters.
+                </p>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="reviews" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Your Profile</CardTitle>
-                    <CardDescription>
-                      Manage your skills and preferences for better gig matching
-                    </CardDescription>
-                  </div>
-                  <ProfileEdit />
-                </div>
+                <CardTitle className="text-2xl">Your Reviews & Rating</CardTitle>
+                <CardDescription className="text-base">
+                  Build your reputation by completing gigs successfully
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium">Name</label>
-                    <p className="text-lg" data-testid="profile-name">
-                      {user?.firstName} {user?.lastName}
-                    </p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Location</label>
-                    <p className="text-lg" data-testid="profile-location">
-                      {user?.location}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">Skills</label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {user?.skills?.map((skill, index) => (
-                      <Badge key={index} variant="default">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+              <CardContent className="space-y-6">
+                {user && <UserRating userId={user.id} size="lg" showCount />}
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <WalletBalance />
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Wallet className="h-5 w-5 text-blue-600" />
-                    Wallet Actions
-                  </CardTitle>
-                  <CardDescription>
-                    Manage your funds for gig payments and earnings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <WalletTopUp />
-                  <WithdrawalDialog 
-                    trigger={
-                      <Button variant="outline" className="w-full">
-                        <ArrowUpRight className="h-4 w-4 mr-2" />
-                        Withdraw Funds
-                      </Button>
-                    }
-                  />
-                  <PaymentMethodSetup />
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </div>
+        <TabsContent value="profile" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <ProfileEdit />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
