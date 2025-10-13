@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation, type VideoCallSession, type InsertVideoCallSession, type Wallet, type InsertWallet, type PaymentMethod, type InsertPaymentMethod, type AddPaymentMethod, type EscrowTransaction, type InsertEscrowTransaction, type Transaction, type InsertTransaction, type Message, type InsertMessage } from "@shared/schema";
+import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation, type VideoCallSession, type InsertVideoCallSession, type Wallet, type InsertWallet, type PaymentMethod, type InsertPaymentMethod, type AddPaymentMethod, type EscrowTransaction, type InsertEscrowTransaction, type Transaction, type InsertTransaction, type Message, type InsertMessage, type Badge, type InsertBadge, type DailyStreak, type InsertDailyStreak, type AIAssistantChat, type InsertAIAssistantChat, type BudgetTracking, type InsertBudgetTracking, type SavingsVault, type InsertSavingsVault, type Course, type InsertCourse, type UserCourseProgress, type InsertUserCourseProgress, type Microloan, type InsertMicroloan } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { encryptSensitiveData, decryptSensitiveData, validateNigerianBankAccount } from "./payment-providers";
 
@@ -85,6 +85,37 @@ export interface IStorage {
   releaseEscrowPayment(gigId: string): Promise<{ success: boolean; error?: string }>;
   refundEscrowPayment(gigId: string, reason: string): Promise<{ success: boolean; error?: string }>;
   withdrawFunds(userId: string, amount: number, paymentMethodId: string): Promise<{ success: boolean; reference?: string; error?: string }>;
+  
+  // AI Assistant management
+  createAIChat(chat: InsertAIAssistantChat): Promise<AIAssistantChat>;
+  getAIChats(userId: string): Promise<AIAssistantChat[]>;
+  
+  // Badge management
+  getUserBadges(userId: string): Promise<Badge[]>;
+  createBadge(badge: InsertBadge): Promise<Badge>;
+  
+  // Daily streak management
+  getDailyStreaks(userId: string): Promise<DailyStreak[]>;
+  createDailyStreak(streak: InsertDailyStreak): Promise<DailyStreak>;
+  
+  // Budget tracking management
+  getUserBudgets(userId: string): Promise<BudgetTracking[]>;
+  createBudget(budget: InsertBudgetTracking): Promise<BudgetTracking>;
+  
+  // Savings vault management
+  getSavingsVault(userId: string): Promise<SavingsVault | undefined>;
+  updateSavingsVault(data: { userId: string; targetAmount?: number; autoSavePercentage?: number }): Promise<SavingsVault>;
+  withdrawFromSavings(userId: string, amount: number): Promise<{ success: boolean; error?: string }>;
+  
+  // Microloan management
+  getUserMicroloans(userId: string): Promise<Microloan[]>;
+  createMicroloan(loan: InsertMicroloan): Promise<Microloan>;
+  repayMicroloan(loanId: string, userId: string): Promise<{ success: boolean; error?: string }>;
+  getUserById(userId: string): Promise<User | undefined>;
+  
+  // Course management
+  getAllCourses(): Promise<Course[]>;
+  getUserCourseProgress(userId: string): Promise<UserCourseProgress[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -98,6 +129,14 @@ export class MemStorage implements IStorage {
   private escrowTransactions: Map<string, EscrowTransaction>;
   private transactions: Map<string, Transaction>;
   private messages: Map<string, Message>;
+  private badges: Map<string, Badge>;
+  private dailyStreaks: Map<string, DailyStreak>;
+  private aiAssistantChats: Map<string, AIAssistantChat>;
+  private budgetTracking: Map<string, BudgetTracking>;
+  private savingsVaults: Map<string, SavingsVault>;
+  private microloans: Map<string, Microloan>;
+  private courses: Map<string, Course>;
+  private userCourseProgress: Map<string, UserCourseProgress>;
 
   constructor() {
     this.users = new Map();
@@ -110,6 +149,14 @@ export class MemStorage implements IStorage {
     this.escrowTransactions = new Map();
     this.transactions = new Map();
     this.messages = new Map();
+    this.badges = new Map();
+    this.dailyStreaks = new Map();
+    this.aiAssistantChats = new Map();
+    this.budgetTracking = new Map();
+    this.savingsVaults = new Map();
+    this.microloans = new Map();
+    this.courses = new Map();
+    this.userCourseProgress = new Map();
     this.initializeTestUsers();
     this.initializeTestGigs();
     this.initializeTestReviews();
@@ -123,6 +170,10 @@ export class MemStorage implements IStorage {
       email: "team@payday.ng",
       password: "123456789",
       firstName: "Team",
+      trustScore: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      totalGigsCompleted: 0,
       lastName: "Payday",
       phone: "+234 704 200 1836",
       location: "Lagos",
@@ -146,6 +197,10 @@ export class MemStorage implements IStorage {
       skills: ["delivery", "tutoring", "data-entry"],
       businessName: null,
       isVerified: true,
+      trustScore: 750,
+      currentStreak: 5,
+      longestStreak: 12,
+      totalGigsCompleted: 15,
       createdAt: new Date(),
     };
 
@@ -199,6 +254,10 @@ export class MemStorage implements IStorage {
       skills: insertUser.skills || null,
       businessName: insertUser.businessName || null,
       isVerified: false,
+      trustScore: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      totalGigsCompleted: 0,
       createdAt: new Date(),
     };
     this.users.set(id, user);
@@ -1158,6 +1217,190 @@ export class MemStorage implements IStorage {
     } catch (error) {
       return { success: false, error: "Withdrawal processing failed" };
     }
+  }
+
+  // AI Assistant methods
+  async createAIChat(chat: InsertAIAssistantChat): Promise<AIAssistantChat> {
+    const newChat: AIAssistantChat = {
+      id: randomUUID(),
+      ...chat,
+      createdAt: new Date(),
+    };
+    this.aiAssistantChats.set(newChat.id, newChat);
+    return newChat;
+  }
+
+  async getAIChats(userId: string): Promise<AIAssistantChat[]> {
+    return Array.from(this.aiAssistantChats.values())
+      .filter(chat => chat.userId === userId)
+      .sort((a, b) => a.createdAt!.getTime() - b.createdAt!.getTime());
+  }
+
+  // Badge methods
+  async getUserBadges(userId: string): Promise<Badge[]> {
+    return Array.from(this.badges.values())
+      .filter(badge => badge.userId === userId)
+      .sort((a, b) => b.earnedAt!.getTime() - a.earnedAt!.getTime());
+  }
+
+  async createBadge(badge: InsertBadge): Promise<Badge> {
+    const newBadge: Badge = {
+      id: randomUUID(),
+      ...badge,
+      earnedAt: new Date(),
+    };
+    this.badges.set(newBadge.id, newBadge);
+    return newBadge;
+  }
+
+  // Daily streak methods
+  async getDailyStreaks(userId: string): Promise<DailyStreak[]> {
+    return Array.from(this.dailyStreaks.values())
+      .filter(streak => streak.userId === userId)
+      .sort((a, b) => b.streakDate.getTime() - a.streakDate.getTime());
+  }
+
+  async createDailyStreak(streak: InsertDailyStreak): Promise<DailyStreak> {
+    const newStreak: DailyStreak = {
+      id: randomUUID(),
+      ...streak,
+      gigsCompleted: streak.gigsCompleted || 0,
+      createdAt: new Date(),
+    };
+    this.dailyStreaks.set(newStreak.id, newStreak);
+    return newStreak;
+  }
+
+  // Budget tracking methods
+  async getUserBudgets(userId: string): Promise<BudgetTracking[]> {
+    return Array.from(this.budgetTracking.values())
+      .filter(budget => budget.userId === userId);
+  }
+
+  async createBudget(budget: InsertBudgetTracking): Promise<BudgetTracking> {
+    const newBudget: BudgetTracking = {
+      id: randomUUID(),
+      ...budget,
+      spentAmount: budget.spentAmount || 0,
+      createdAt: new Date(),
+    };
+    this.budgetTracking.set(newBudget.id, newBudget);
+    return newBudget;
+  }
+
+  // Savings vault methods
+  async getSavingsVault(userId: string): Promise<SavingsVault | undefined> {
+    return Array.from(this.savingsVaults.values())
+      .find(vault => vault.userId === userId);
+  }
+
+  async updateSavingsVault(data: { userId: string; targetAmount?: number; autoSavePercentage?: number }): Promise<SavingsVault> {
+    let vault = await this.getSavingsVault(data.userId);
+    
+    if (!vault) {
+      vault = {
+        id: randomUUID(),
+        userId: data.userId,
+        totalSaved: 0,
+        autoSavePercentage: data.autoSavePercentage || 0,
+        targetAmount: data.targetAmount || 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      this.savingsVaults.set(vault.id, vault);
+    } else {
+      if (data.targetAmount !== undefined) vault.targetAmount = data.targetAmount;
+      if (data.autoSavePercentage !== undefined) vault.autoSavePercentage = data.autoSavePercentage;
+      vault.updatedAt = new Date();
+    }
+    
+    return vault;
+  }
+
+  async withdrawFromSavings(userId: string, amount: number): Promise<{ success: boolean; error?: string }> {
+    const vault = await this.getSavingsVault(userId);
+    if (!vault) {
+      return { success: false, error: "Savings vault not found" };
+    }
+    
+    if (vault.totalSaved < amount) {
+      return { success: false, error: "Insufficient savings balance" };
+    }
+    
+    vault.totalSaved -= amount;
+    vault.updatedAt = new Date();
+    
+    const wallet = await this.getWalletByUser(userId);
+    if (wallet) {
+      await this.updateWalletBalance(wallet.id, amount);
+    }
+    
+    return { success: true };
+  }
+
+  // Microloan methods
+  async getUserMicroloans(userId: string): Promise<Microloan[]> {
+    return Array.from(this.microloans.values())
+      .filter(loan => loan.userId === userId);
+  }
+
+  async createMicroloan(loan: InsertMicroloan): Promise<Microloan> {
+    const newLoan: Microloan = {
+      id: randomUUID(),
+      ...loan,
+      repaidAmount: 0,
+      status: "active",
+      repaidAt: null,
+      createdAt: new Date(),
+    };
+    this.microloans.set(newLoan.id, newLoan);
+    return newLoan;
+  }
+
+  async repayMicroloan(loanId: string, userId: string): Promise<{ success: boolean; error?: string }> {
+    const loan = this.microloans.get(loanId);
+    if (!loan) {
+      return { success: false, error: "Loan not found" };
+    }
+    
+    if (loan.userId !== userId) {
+      return { success: false, error: "Unauthorized: You don't own this loan" };
+    }
+    
+    if (loan.status !== "active") {
+      return { success: false, error: "Loan is not active" };
+    }
+    
+    const wallet = await this.getWalletByUser(loan.userId);
+    if (!wallet) {
+      return { success: false, error: "Wallet not found" };
+    }
+    
+    if (wallet.balance < loan.loanAmount) {
+      return { success: false, error: "Insufficient wallet balance" };
+    }
+    
+    loan.repaidAmount = loan.loanAmount;
+    loan.status = "repaid";
+    loan.repaidAt = new Date();
+    
+    await this.updateWalletBalance(wallet.id, -loan.loanAmount);
+    
+    return { success: true };
+  }
+
+  async getUserById(userId: string): Promise<User | undefined> {
+    return this.users.get(userId);
+  }
+
+  // Course methods
+  async getAllCourses(): Promise<Course[]> {
+    return Array.from(this.courses.values());
+  }
+
+  async getUserCourseProgress(userId: string): Promise<UserCourseProgress[]> {
+    return Array.from(this.userCourseProgress.values())
+      .filter(progress => progress.userId === userId);
   }
 }
 

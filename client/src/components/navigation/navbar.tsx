@@ -26,15 +26,15 @@ export default function Navbar({ onOpenLogin, onOpenSignup }: NavbarProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 md:h-20">
           {/* Logo */}
-          <Link href="/">
-            <a className="flex items-center cursor-pointer" data-testid="link-home">
+          <Link href="/" asChild>
+            <div className="flex items-center cursor-pointer" data-testid="link-home">
               <img 
                 src={paydayLogoPath} 
                 alt="Payday Logo" 
                 className="w-10 h-10 sm:w-12 sm:h-12"
               />
               <span className="ml-2 text-lg sm:text-xl font-bold text-payday-blue hidden sm:inline">Payday</span>
-            </a>
+            </div>
           </Link>
 
           {/* Desktop Navigation */}

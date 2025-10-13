@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema, insertVideoCallSessionSchema, addPaymentMethodSchema, insertEscrowTransactionSchema, insertMessageSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema, insertVideoCallSessionSchema, addPaymentMethodSchema, insertEscrowTransactionSchema, insertMessageSchema, insertAIAssistantChatSchema, insertBadgeSchema, insertDailyStreakSchema, insertBudgetTrackingSchema, insertSavingsVaultSchema, insertMicroloanSchema } from "@shared/schema";
 import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
 import { z } from "zod";
 import { nanoid } from "nanoid";
@@ -1641,6 +1641,233 @@ export async function registerRoutes(app: Express): Promise<Server> {
       ];
 
       res.json(providers);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // AI Assistant routes
+  app.get("/api/ai/chats/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const chats = await storage.getAIChats(userId);
+      res.json(chats);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/ai/chat", async (req, res) => {
+    try {
+      const { userId, message } = req.body;
+      const user = await storage.getUser(userId);
+      
+      let responseText = "I'm Zee, your AI assistant! I can help you find gigs, give career advice, or answer questions about the platform. What would you like to know?";
+      
+      if (user && user.skills && user.skills.length > 0) {
+        const gigList = await storage.getAllGigs();
+        responseText = `Based on your skills (${user.skills.join(', ')}), I found ${gigList.length} available gigs. Would you like me to recommend the best ones for you?`;
+      }
+      
+      const chat = await storage.createAIChat({
+        userId,
+        message,
+        response: responseText,
+        chatType: "general"
+      });
+      res.json(chat);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Badges routes
+  app.get("/api/badges/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const badges = await storage.getUserBadges(userId);
+      res.json(badges);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Daily streaks routes
+  app.get("/api/streaks/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const streaks = await storage.getDailyStreaks(userId);
+      res.json(streaks);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Budget tracking routes
+  app.get("/api/budgets/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const budgets = await storage.getUserBudgets(userId);
+      res.json(budgets);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/budgets", async (req, res) => {
+    try {
+      const budgetData = insertBudgetTrackingSchema.parse(req.body);
+      const budget = await storage.createBudget(budgetData);
+      res.json(budget);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Savings vault routes
+  app.get("/api/savings/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const vault = await storage.getSavingsVault(userId);
+      res.json(vault);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/savings/update", async (req, res) => {
+    try {
+      const updateSchema = z.object({
+        userId: z.string(),
+        targetAmount: z.number().min(0).optional(),
+        autoSavePercentage: z.number().min(0).max(50).optional(),
+      });
+      
+      const updateData = updateSchema.parse(req.body);
+      const vault = await storage.updateSavingsVault(updateData);
+      res.json(vault);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/savings/withdraw", async (req, res) => {
+    try {
+      const { userId, amount } = req.body;
+      
+      if (!userId || !amount || amount <= 0) {
+        return res.status(400).json({ message: "Valid user ID and amount required" });
+      }
+      
+      const result = await storage.withdrawFromSavings(userId, amount);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error || "Withdrawal failed" });
+      }
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Microloans routes
+  app.get("/api/microloans/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const loans = await storage.getUserMicroloans(userId);
+      res.json(loans);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/microloans/request", async (req, res) => {
+    try {
+      const { userId, loanAmount } = req.body;
+      
+      if (!userId || !loanAmount || loanAmount <= 0) {
+        return res.status(400).json({ message: "Valid user ID and loan amount required" });
+      }
+      
+      const user = await storage.getUserById(userId);
+      
+      if (!user || user.trustScore < 500) {
+        return res.status(400).json({ message: "Trust score too low for loans" });
+      }
+
+      // Check for active loans
+      const existingLoans = await storage.getUserMicroloans(userId);
+      if (existingLoans.some(loan => loan.status === 'active')) {
+        return res.status(400).json({ message: "You already have an active loan" });
+      }
+
+      const maxLoan = Math.min(user.trustScore * 10, 50000);
+      if (loanAmount > maxLoan) {
+        return res.status(400).json({ message: `Loan amount exceeds limit of ₦${maxLoan / 100}` });
+      }
+
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30);
+
+      const loan = await storage.createMicroloan({
+        userId,
+        loanAmount,
+        dueDate: dueDate,
+      });
+
+      const wallet = await storage.getWalletByUser(userId);
+      if (wallet) {
+        await storage.updateWalletBalance(wallet.id, loanAmount);
+      }
+      
+      res.json(loan);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post("/api/microloans/repay", async (req, res) => {
+    try {
+      const { loanId, userId } = req.body;
+      
+      if (!loanId || !userId) {
+        return res.status(400).json({ message: "Loan ID and User ID are required" });
+      }
+      
+      const result = await storage.repayMicroloan(loanId, userId);
+      
+      if (!result.success) {
+        return res.status(400).json({ message: result.error || "Loan repayment failed" });
+      }
+      
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Courses routes
+  app.get("/api/courses", async (req, res) => {
+    try {
+      const courses = await storage.getAllCourses();
+      res.json(courses);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/courses/progress/:userId", async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const progress = await storage.getUserCourseProgress(userId);
+      res.json(progress);
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
