@@ -15,6 +15,10 @@ export const users = pgTable("users", {
   skills: text("skills").array(), // for seekers
   businessName: text("business_name"), // for posters
   isVerified: boolean("is_verified").default(false),
+  trustScore: integer("trust_score").notNull().default(0),
+  currentStreak: integer("current_streak").notNull().default(0),
+  longestStreak: integer("longest_streak").notNull().default(0),
+  totalGigsCompleted: integer("total_gigs_completed").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -138,6 +142,83 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const badges = pgTable("badges", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  badgeType: text("badge_type").notNull(), // 'first_gig', 'streak_7', 'streak_30', 'verified_worker', 'top_earner', etc.
+  badgeName: text("badge_name").notNull(),
+  badgeDescription: text("badge_description").notNull(),
+  earnedAt: timestamp("earned_at").defaultNow(),
+});
+
+export const dailyStreaks = pgTable("daily_streaks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  streakDate: timestamp("streak_date").notNull(),
+  gigsCompleted: integer("gigs_completed").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const aiAssistantChats = pgTable("ai_assistant_chats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  message: text("message").notNull(),
+  response: text("response").notNull(),
+  chatType: text("chat_type").notNull(), // 'gig_suggestion', 'coaching', 'scam_detection', 'general'
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const budgetTracking = pgTable("budget_tracking", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  category: text("category").notNull(), // 'rent', 'transport', 'food', 'savings', etc.
+  budgetAmount: integer("budget_amount").notNull(), // Amount in kobo
+  spentAmount: integer("spent_amount").notNull().default(0),
+  month: text("month").notNull(), // 'YYYY-MM' format
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const savingsVault = pgTable("savings_vault", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id).unique(),
+  totalSaved: integer("total_saved").notNull().default(0), // Amount in kobo
+  autoSavePercentage: integer("auto_save_percentage").notNull().default(0), // 0-100
+  targetAmount: integer("target_amount").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const courses = pgTable("courses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(),
+  durationMinutes: integer("duration_minutes").notNull(),
+  skillsLearned: text("skills_learned").array().notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const userCourseProgress = pgTable("user_course_progress", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  courseId: varchar("course_id").notNull().references(() => courses.id),
+  progressPercentage: integer("progress_percentage").notNull().default(0),
+  completed: boolean("completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const microloans = pgTable("microloans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  loanAmount: integer("loan_amount").notNull(), // Amount in kobo
+  repaidAmount: integer("repaid_amount").notNull().default(0),
+  status: text("status").notNull().default("active"), // 'active', 'repaid', 'defaulted'
+  dueDate: timestamp("due_date").notNull(),
+  repaidAt: timestamp("repaid_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
@@ -236,6 +317,62 @@ export const insertMessageSchema = createInsertSchema(messages).pick({
   type: z.enum(["text", "image", "file"]).default("text"),
 });
 
+export const insertBadgeSchema = createInsertSchema(badges).pick({
+  userId: true,
+  badgeType: true,
+  badgeName: true,
+  badgeDescription: true,
+});
+
+export const insertDailyStreakSchema = createInsertSchema(dailyStreaks).pick({
+  userId: true,
+  streakDate: true,
+  gigsCompleted: true,
+});
+
+export const insertAIAssistantChatSchema = createInsertSchema(aiAssistantChats).pick({
+  userId: true,
+  message: true,
+  response: true,
+  chatType: true,
+});
+
+export const insertBudgetTrackingSchema = createInsertSchema(budgetTracking).pick({
+  userId: true,
+  category: true,
+  budgetAmount: true,
+  spentAmount: true,
+  month: true,
+});
+
+export const insertSavingsVaultSchema = createInsertSchema(savingsVault).pick({
+  userId: true,
+  totalSaved: true,
+  autoSavePercentage: true,
+  targetAmount: true,
+});
+
+export const insertCourseSchema = createInsertSchema(courses).pick({
+  title: true,
+  description: true,
+  category: true,
+  durationMinutes: true,
+  skillsLearned: true,
+});
+
+export const insertUserCourseProgressSchema = createInsertSchema(userCourseProgress).pick({
+  userId: true,
+  courseId: true,
+  progressPercentage: true,
+  completed: true,
+});
+
+export const insertMicroloanSchema = createInsertSchema(microloans).pick({
+  userId: true,
+  loanAmount: true,
+  dueDate: true,
+});
+
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -271,6 +408,14 @@ export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
 export type InsertEscrowTransaction = z.infer<typeof insertEscrowTransactionSchema>;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type InsertBadge = z.infer<typeof insertBadgeSchema>;
+export type InsertDailyStreak = z.infer<typeof insertDailyStreakSchema>;
+export type InsertAIAssistantChat = z.infer<typeof insertAIAssistantChatSchema>;
+export type InsertBudgetTracking = z.infer<typeof insertBudgetTrackingSchema>;
+export type InsertSavingsVault = z.infer<typeof insertSavingsVaultSchema>;
+export type InsertCourse = z.infer<typeof insertCourseSchema>;
+export type InsertUserCourseProgress = z.infer<typeof insertUserCourseProgressSchema>;
+export type InsertMicroloan = z.infer<typeof insertMicroloanSchema>;
 export type AddPaymentMethod = z.infer<typeof addPaymentMethodSchema>;
 
 export type User = typeof users.$inferSelect;
@@ -283,4 +428,12 @@ export type PaymentMethod = typeof paymentMethods.$inferSelect;
 export type EscrowTransaction = typeof escrowTransactions.$inferSelect;
 export type Transaction = typeof transactions.$inferSelect;
 export type Message = typeof messages.$inferSelect;
+export type Badge = typeof badges.$inferSelect;
+export type DailyStreak = typeof dailyStreaks.$inferSelect;
+export type AIAssistantChat = typeof aiAssistantChats.$inferSelect;
+export type BudgetTracking = typeof budgetTracking.$inferSelect;
+export type SavingsVault = typeof savingsVault.$inferSelect;
+export type Course = typeof courses.$inferSelect;
+export type UserCourseProgress = typeof userCourseProgress.$inferSelect;
+export type Microloan = typeof microloans.$inferSelect;
 export type LoginCredentials = z.infer<typeof loginSchema>;

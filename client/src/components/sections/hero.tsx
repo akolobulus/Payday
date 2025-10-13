@@ -90,18 +90,17 @@ export default function Hero({ onOpenSignup }: HeroProps) {
                 data-testid="button-start-earning"
                 onClick={onOpenSignup}
                 size="lg"
-                className="bg-payday-yellow text-payday-blue px-8 py-4 text-lg font-semibold hover:bg-yellow-400 hover-lift shadow-lg"
+                className="bg-payday-yellow text-payday-blue px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold hover:bg-yellow-400 hover-lift shadow-lg w-full sm:w-auto"
               >
                 Start Earning Today
               </Button>
               <Button 
                 data-testid="button-post-gig"
-                variant="outline"
                 onClick={onOpenSignup}
                 size="lg"
-                className="border-2 border-white text-white px-8 py-4 text-lg font-semibold hover:bg-white hover:text-payday-blue"
+                className="bg-payday-blue text-white border-2 border-payday-blue px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold hover:bg-blue-700 hover:border-blue-700 w-full sm:w-auto"
               >
-                Post a Gig
+                Post Your Gig
               </Button>
             </div>
           </div>
