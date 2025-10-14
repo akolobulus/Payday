@@ -29,10 +29,12 @@ Preferred communication style: Simple, everyday language.
 - **Development**: Hot module replacement via Vite integration in development mode
 
 ### Data Storage Architecture
-- **Database Schema**: Extended to include gigs table with comprehensive gig management
+- **Database Schema**: Extended to include gigs table with comprehensive gig management and gigApplications table for application tracking
 - **User Management**: Support for both gig seekers and gig posters with role-based fields
 - **Gig Management**: Complete gig lifecycle management (create, apply, assign, complete)
-- **Current Implementation**: In-memory storage with test data for immediate functionality
+- **Application Management**: Track gig applications with status (pending, accepted, rejected) and cover letters
+- **Audio Features**: Support for audio descriptions on gigs and optional audio recordings on applications
+- **Current Implementation**: In-memory storage with test data for immediate functionality (3-5 mock applicants per gig)
 - **Migration Ready**: Drizzle configuration and schema prepared for PostgreSQL deployment
 
 ### Authentication & Authorization
@@ -54,6 +56,8 @@ Preferred communication style: Simple, everyday language.
 - **Gig Seeker Dashboard**: 
   - Prominent wallet section showing available balance and pending payments
   - Browse gigs with dual search (title + location) and sidebar filters
+  - Enhanced gig cards showing audio descriptions and applicant counts
+  - Apply to gigs with cover letter and optional audio recording
   - AI recommendations and application tracking
   - Pending payment indicators for gigs awaiting completion confirmation
   - Fund wallet and withdraw options
@@ -61,12 +65,32 @@ Preferred communication style: Simple, everyday language.
 - **Gig Poster Dashboard**: 
   - Prominent wallet section showing available balance, total spent, and funds in escrow
   - Create and manage posted gigs with modern job portal design
-  - View applications and assign seekers to gigs
+  - Add audio descriptions when creating gigs to explain requirements
+  - View and manage applications with accept/reject functionality
+  - Applicant count displayed on each gig card
+  - View applicant details including cover letters and audio recordings
   - Fund escrow payment (with 12% platform fee disclosure)
   - Analytics, business profile, and video calls
   - Completion confirmation for work approval/refund
 - **Real-time Updates**: Optimistic updates and cache invalidation for immediate UI feedback
 - **Responsive Design**: Mobile-first approach optimized for Nigerian youth usage patterns
+
+### Audio Features Architecture
+- **Audio Descriptions**: Gig posters can add audio recordings to explain gig requirements
+- **HTML5 Audio Playback**: Resilient audio player with play/pause controls and error handling
+- **Application Recordings**: Gig seekers can attach audio recordings to their applications
+- **State Management**: Proper audio lifecycle management with cleanup and error recovery
+- **Error Handling**: Displays error state when audio fails to load, allows retry on transient failures
+- **Event Handling**: Automatically resets playback when audio ends, cleans up listeners on unmount
+
+### Applicant Management System
+- **Application Tracking**: Complete CRUD operations for gig applications
+- **Status Management**: Track application status (pending, accepted, rejected)
+- **Cover Letters**: Applicants can submit cover letters with their applications
+- **Applicant Count**: Display number of applicants on each gig card
+- **Accept/Reject UI**: Gig posters can review and manage applicants
+- **Mock Data**: 3-5 test applicants per gig for demonstration purposes
+- **API Endpoints**: RESTful endpoints for creating, listing, and updating applications
 
 ### Escrow Payment System
 - **Wallet Management**: Each user has a wallet with available balance, pending balance (in escrow), and transaction history
