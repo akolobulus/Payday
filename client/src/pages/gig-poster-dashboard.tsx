@@ -14,6 +14,11 @@ import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { WalletBalance, PaymentMethodSetup, FundEscrowDialog, EscrowStatus, formatNaira } from "@/components/ui/payment-components";
 import { WalletTopUp } from "@/components/ui/wallet-topup";
 import { ProfileEdit } from "@/components/ui/profile-edit";
+import GamificationDashboard from "@/components/ui/gamification-dashboard";
+import AIAssistant from "@/components/ui/ai-assistant";
+import ZeroBrokeMode from "@/components/ui/zero-broke-mode";
+import SavingsVault from "@/components/ui/savings-vault";
+import BudgetTracker from "@/components/ui/budget-tracker";
 import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -220,46 +225,67 @@ export default function GigPosterDashboard() {
       <Tabs defaultValue="gigs" className="w-full">
         <div className="border-b border-gray-200 dark:border-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <TabsList className="grid w-full max-w-3xl grid-cols-6 bg-transparent border-0 h-auto p-0">
+            <TabsList className="grid w-full max-w-6xl grid-cols-9 bg-transparent border-0 h-auto p-0">
               <TabsTrigger 
                 value="gigs" 
                 data-testid="tab-gigs"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
               >
                 My Gigs
               </TabsTrigger>
               <TabsTrigger 
+                value="gamification" 
+                data-testid="tab-gamification"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
+              >
+                Achievements
+              </TabsTrigger>
+              <TabsTrigger 
+                value="ai-assistant" 
+                data-testid="tab-ai-assistant"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
+              >
+                AI Assistant
+              </TabsTrigger>
+              <TabsTrigger 
+                value="financial" 
+                data-testid="tab-financial"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
+              >
+                Financial
+              </TabsTrigger>
+              <TabsTrigger 
                 value="chat" 
                 data-testid="tab-chat"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
               >
                 Chat
               </TabsTrigger>
               <TabsTrigger 
                 value="video-calls" 
                 data-testid="tab-video-calls"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
               >
-                Video Calls
+                Videos
               </TabsTrigger>
               <TabsTrigger 
                 value="analytics" 
                 data-testid="tab-analytics"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
               >
                 Analytics
               </TabsTrigger>
               <TabsTrigger 
                 value="reviews" 
                 data-testid="tab-reviews"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
               >
                 Reviews
               </TabsTrigger>
               <TabsTrigger 
                 value="profile" 
                 data-testid="tab-profile"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent"
+                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
               >
                 Profile
               </TabsTrigger>
@@ -974,6 +1000,32 @@ export default function GigPosterDashboard() {
                 {user && <UserRating userId={user.id} size="lg" showCount />}
               </CardContent>
             </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="gamification" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {user && <GamificationDashboard user={user} />}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ai-assistant" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {user && <AIAssistant userId={user.id} />}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="financial" className="mt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="space-y-6">
+              {user && (
+                <>
+                  <ZeroBrokeMode user={user} />
+                  <SavingsVault userId={user.id} />
+                  <BudgetTracker userId={user.id} />
+                </>
+              )}
+            </div>
           </div>
         </TabsContent>
 
