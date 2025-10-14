@@ -17,6 +17,7 @@ import ZeroBrokeMode from "@/components/ui/zero-broke-mode";
 import SavingsVault from "@/components/ui/savings-vault";
 import BudgetTracker from "@/components/ui/budget-tracker";
 import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, DollarSign, Video, PhoneCall, Wallet, ArrowUpRight, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
+import { AudioPlayer } from "@/components/ui/audio-recorder";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
@@ -479,6 +480,12 @@ export default function GigSeekerDashboard() {
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2" data-testid={`gig-description-${gig.id}`}>
                               {gig.description}
                             </p>
+
+                            {gig.audioDescriptionUrl && (
+                              <div className="mb-4">
+                                <AudioPlayer audioUrl={gig.audioDescriptionUrl} label="Listen to Requirements" />
+                              </div>
+                            )}
 
                             <div className="flex justify-between items-center">
                               <div className="flex flex-wrap gap-2">

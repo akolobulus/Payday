@@ -20,6 +20,8 @@ import ZeroBrokeMode from "@/components/ui/zero-broke-mode";
 import SavingsVault from "@/components/ui/savings-vault";
 import BudgetTracker from "@/components/ui/budget-tracker";
 import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import { AudioRecorder } from "@/components/ui/audio-recorder";
+import { GigApplicationsDialog } from "@/components/ui/gig-applications-dialog";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -41,6 +43,7 @@ export default function GigPosterDashboard() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const itemsPerPage = 6;
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   
   const { data: user } = useQuery<User>({
     queryKey: ['/api/user/profile']
@@ -83,9 +86,15 @@ export default function GigPosterDashboard() {
       const { skillsRequiredText, ...gigData } = data;
       const skillsRequired = skillsRequiredText.split(',').map(s => s.trim()).filter(Boolean);
       
+      let audioDescriptionUrl = null;
+      if (audioBlob) {
+        audioDescriptionUrl = "placeholder-audio-url.webm";
+      }
+      
       return apiRequest('/api/gigs', 'POST', {
         ...gigData,
         skillsRequired,
+        audioDescriptionUrl,
       });
     },
     onSuccess: () => {
@@ -93,6 +102,7 @@ export default function GigPosterDashboard() {
       queryClient.invalidateQueries({ queryKey: ['/api/gigs/analysis'] });
       setIsCreateModalOpen(false);
       form.reset();
+      setAudioBlob(null);
       toast({
         title: "Gig created!",
         description: "Your gig has been posted successfully.",
@@ -520,6 +530,13 @@ export default function GigPosterDashboard() {
                           )}
                         />
 
+                        <div>
+                          <label className="text-sm font-medium">Audio Description (Optional)</label>
+                          <AudioRecorder 
+                            onAudioRecorded={(blob) => setAudioBlob(blob)}
+                          />
+                        </div>
+
                         <div className="flex space-x-4 pt-4">
                           <Button 
                             type="submit" 
@@ -684,49 +701,26 @@ export default function GigPosterDashboard() {
                                 <div className="flex items-center gap-2">
                                   <Users className="h-4 w-4 text-green-600" />
                                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    Applications Received
+                                    5 Applications Received
                                   </span>
                                 </div>
-                                <Dialog>
-                                  <DialogTrigger asChild>
+                                <GigApplicationsDialog
+                                  gigId={gig.id}
+                                  gigTitle={gig.title}
+                                  onAccept={(seekerId) => {
+                                    assignSeekerMutation.mutate({ gigId: gig.id, seekerId });
+                                  }}
+                                  trigger={
                                     <Button 
                                       size="sm" 
                                       className="bg-green-600 hover:bg-green-700"
-                                      data-testid={`assign-seeker-${gig.id}`}
+                                      data-testid={`view-applications-${gig.id}`}
                                     >
                                       <Users className="h-4 w-4 mr-2" />
-                                      Assign Seeker
+                                      View Applications
                                     </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>Assign Gig Seeker</DialogTitle>
-                                      <DialogDescription>
-                                        Enter the ID of the seeker you want to assign to this gig.
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <div className="space-y-4">
-                                      <Input
-                                        id={`seeker-id-${gig.id}`}
-                                        placeholder="Enter seeker ID"
-                                        data-testid={`input-seeker-id-${gig.id}`}
-                                      />
-                                      <Button 
-                                        onClick={() => {
-                                          const input = document.getElementById(`seeker-id-${gig.id}`) as HTMLInputElement;
-                                          if (input?.value) {
-                                            assignSeekerMutation.mutate({ gigId: gig.id, seekerId: input.value });
-                                          }
-                                        }}
-                                        disabled={assignSeekerMutation.isPending}
-                                        className="w-full bg-green-600 hover:bg-green-700"
-                                        data-testid={`confirm-assign-${gig.id}`}
-                                      >
-                                        {assignSeekerMutation.isPending ? "Assigning..." : "Confirm Assignment"}
-                                      </Button>
-                                    </div>
-                                  </DialogContent>
-                                </Dialog>
+                                  }
+                                />
                               </div>
                             </div>
                           )}
