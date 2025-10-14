@@ -321,7 +321,7 @@ export default function GigSeekerDashboard() {
                   />
                   <WithdrawalDialog 
                     trigger={
-                      <Button variant="outline" className="border-white text-white hover:bg-white/10" data-testid="button-withdraw">
+                      <Button variant="outline" className="border-white text-blue-400 hover:bg-white/10" data-testid="button-withdraw">
                         <ArrowUpRight className="h-4 w-4 mr-2" />
                         Withdraw
                       </Button>
