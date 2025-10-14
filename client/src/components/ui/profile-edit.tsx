@@ -39,6 +39,7 @@ export function ProfileEdit({ trigger }: ProfileEditProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [newSkill, setNewSkill] = useState("");
   const [cvText, setCvText] = useState("");
+  const [cvFile, setCvFile] = useState<File | null>(null);
   const [isExtractingSkills, setIsExtractingSkills] = useState(false);
   const { toast } = useToast();
 
@@ -115,11 +116,61 @@ export function ProfileEdit({ trigger }: ProfileEditProps) {
     form.setValue("skills", currentSkills.filter(skill => skill !== skillToRemove));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Invalid File Type",
+          description: "Please upload a PDF, DOCX, or TXT file",
+          variant: "destructive",
+        });
+        return;
+      }
+      setCvFile(file);
+    }
+  };
+
   const extractSkillsFromCV = async () => {
-    if (!cvText.trim() || cvText.trim().length < 50) {
+    let textToExtract = cvText.trim();
+
+    // If a file is selected, read it first
+    if (cvFile) {
+      try {
+        const formData = new FormData();
+        formData.append('cv', cvFile);
+        
+        const response = await fetch('/api/user/upload-cv', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to upload CV');
+        }
+        
+        const result = await response.json();
+        textToExtract = result.text;
+        
+        // Store the CV URL
+        if (result.cvUrl) {
+          form.setValue("cvUrl", result.cvUrl);
+        }
+      } catch (error: any) {
+        toast({
+          title: "Upload Failed",
+          description: error.message || "Failed to upload CV file",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (!textToExtract || textToExtract.length < 50) {
       toast({
         title: "CV Too Short",
-        description: "Please paste at least 50 characters from your CV",
+        description: "Please upload a CV file or paste at least 50 characters",
         variant: "destructive",
       });
       return;
@@ -127,7 +178,7 @@ export function ProfileEdit({ trigger }: ProfileEditProps) {
 
     setIsExtractingSkills(true);
     try {
-      const response = await apiRequest('/api/user/extract-cv-skills', 'POST', { cvText });
+      const response = await apiRequest('/api/user/extract-cv-skills', 'POST', { cvText: textToExtract });
       const data = await response.json();
       
       if (data.skills && data.skills.length > 0) {
@@ -147,6 +198,7 @@ export function ProfileEdit({ trigger }: ProfileEditProps) {
       });
       
       setCvText("");
+      setCvFile(null);
     } catch (error: any) {
       toast({
         title: "Extraction Failed",
@@ -361,7 +413,28 @@ export function ProfileEdit({ trigger }: ProfileEditProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label>CV Text</Label>
+                    <Label>Upload CV File</Label>
+                    <Input 
+                      type="file"
+                      accept=".pdf,.docx,.txt"
+                      onChange={handleFileChange}
+                      data-testid="input-cv-file"
+                      className="mt-2"
+                    />
+                    {cvFile && (
+                      <p className="text-sm text-green-600 mt-1">Selected: {cvFile.name}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Accepted formats: PDF, DOCX, TXT
+                    </p>
+                  </div>
+                  
+                  <div className="text-center text-sm text-muted-foreground">
+                    OR
+                  </div>
+                  
+                  <div>
+                    <Label>Paste CV Text</Label>
                     <Textarea 
                       value={cvText}
                       onChange={(e) => setCvText(e.target.value)}
@@ -374,7 +447,7 @@ export function ProfileEdit({ trigger }: ProfileEditProps) {
                   <Button
                     type="button"
                     onClick={extractSkillsFromCV}
-                    disabled={isExtractingSkills || cvText.length < 50}
+                    disabled={isExtractingSkills || (!cvFile && cvText.length < 50)}
                     data-testid="button-extract-skills"
                   >
                     {isExtractingSkills ? (

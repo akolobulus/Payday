@@ -7,6 +7,26 @@ import { z } from "zod";
 import { nanoid } from "nanoid";
 // @ts-ignore: flutterwave-node-v3 doesn't have proper TypeScript definitions
 import Flutterwave from 'flutterwave-node-v3';
+import multer from 'multer';
+import mammoth from 'mammoth';
+// Dynamic import for pdf-parse to avoid ESM issues
+const pdfParseModule = import('pdf-parse');
+
+// Configure multer for file uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF, DOCX, and TXT files are allowed.'));
+    }
+  },
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
@@ -117,6 +137,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid input data", errors: error.errors });
       }
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // CV file upload endpoint
+  app.post("/api/user/upload-cv", upload.single('cv'), async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      let extractedText = "";
+      
+      // Extract text based on file type
+      if (req.file.mimetype === 'application/pdf') {
+        const pdfParse = (await pdfParseModule).default;
+        const pdfData = await pdfParse(req.file.buffer);
+        extractedText = pdfData.text;
+      } else if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+        const result = await mammoth.extractRawText({ buffer: req.file.buffer });
+        extractedText = result.value;
+      } else if (req.file.mimetype === 'text/plain') {
+        extractedText = req.file.buffer.toString('utf-8');
+      }
+
+      if (!extractedText || extractedText.length < 50) {
+        return res.status(400).json({ message: "Could not extract sufficient text from CV" });
+      }
+
+      // Return extracted text and a simulated CV URL
+      res.json({
+        text: extractedText,
+        cvUrl: `cv-${currentUser.id}-${Date.now()}.${req.file.originalname.split('.').pop()}`,
+      });
+    } catch (error: any) {
+      console.error("CV upload error:", error);
+      res.status(500).json({ message: error.message || "Failed to process CV file" });
     }
   });
 
