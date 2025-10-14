@@ -24,6 +24,9 @@ const profileSchema = z.object({
   location: z.string().min(2, "Location is required"),
   businessName: z.string().optional(),
   skills: z.array(z.string()).optional(),
+  profilePicture: z.string().optional(),
+  bio: z.string().optional(),
+  cvUrl: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
@@ -35,6 +38,8 @@ interface ProfileEditProps {
 export function ProfileEdit({ trigger }: ProfileEditProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [newSkill, setNewSkill] = useState("");
+  const [cvText, setCvText] = useState("");
+  const [isExtractingSkills, setIsExtractingSkills] = useState(false);
   const { toast } = useToast();
 
   const { data: user, isLoading } = useQuery<User>({
@@ -50,6 +55,9 @@ export function ProfileEdit({ trigger }: ProfileEditProps) {
       location: user?.location || "",
       businessName: user?.businessName || "",
       skills: user?.skills || [],
+      profilePicture: user?.profilePicture || "",
+      bio: user?.bio || "",
+      cvUrl: user?.cvUrl || "",
     },
   });
 
@@ -63,6 +71,9 @@ export function ProfileEdit({ trigger }: ProfileEditProps) {
         location: user.location,
         businessName: user.businessName || "",
         skills: user.skills || [],
+        profilePicture: user.profilePicture || "",
+        bio: user.bio || "",
+        cvUrl: user.cvUrl || "",
       });
     }
   }, [user, form]);
@@ -102,6 +113,49 @@ export function ProfileEdit({ trigger }: ProfileEditProps) {
   const removeSkill = (skillToRemove: string) => {
     const currentSkills = form.getValues("skills") || [];
     form.setValue("skills", currentSkills.filter(skill => skill !== skillToRemove));
+  };
+
+  const extractSkillsFromCV = async () => {
+    if (!cvText.trim() || cvText.trim().length < 50) {
+      toast({
+        title: "CV Too Short",
+        description: "Please paste at least 50 characters from your CV",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExtractingSkills(true);
+    try {
+      const response = await apiRequest('/api/user/extract-cv-skills', 'POST', { cvText });
+      const data = await response.json();
+      
+      if (data.skills && data.skills.length > 0) {
+        const currentSkills = form.getValues("skills") || [];
+        const combinedSkills = [...currentSkills, ...data.skills];
+        const uniqueSkills = Array.from(new Set(combinedSkills));
+        form.setValue("skills", uniqueSkills);
+      }
+      
+      if (data.bio) {
+        form.setValue("bio", data.bio);
+      }
+      
+      toast({
+        title: "Skills Extracted! 🎉",
+        description: `Found ${data.skills?.length || 0} skills from your CV`,
+      });
+      
+      setCvText("");
+    } catch (error: any) {
+      toast({
+        title: "Extraction Failed",
+        description: error.message || "Failed to extract skills from CV",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExtractingSkills(false);
+    }
   };
 
   const watchedSkills = form.watch("skills") || [];
@@ -247,6 +301,94 @@ export function ProfileEdit({ trigger }: ProfileEditProps) {
                 )}
               </CardContent>
             </Card>
+
+            {/* Profile Picture & Bio Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Profile Picture & Bio</CardTitle>
+                <CardDescription>
+                  Add a profile picture and bio to stand out and build trust with clients.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="profilePicture"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Profile Picture URL</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="https://example.com/your-photo.jpg"
+                          data-testid="input-profile-picture"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="bio"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bio</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          {...field} 
+                          placeholder="Tell clients about yourself, your experience, and what makes you great..."
+                          rows={4}
+                          data-testid="input-bio"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* CV Upload & Skill Extraction (for seekers) */}
+            {user?.userType === 'seeker' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Upload CV & Extract Skills</CardTitle>
+                  <CardDescription>
+                    Paste your CV text below and let AI extract your skills automatically!
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>CV Text</Label>
+                    <Textarea 
+                      value={cvText}
+                      onChange={(e) => setCvText(e.target.value)}
+                      placeholder="Paste your CV or resume text here... (minimum 50 characters)"
+                      rows={6}
+                      data-testid="textarea-cv"
+                    />
+                  </div>
+                  
+                  <Button
+                    type="button"
+                    onClick={extractSkillsFromCV}
+                    disabled={isExtractingSkills || cvText.length < 50}
+                    data-testid="button-extract-skills"
+                  >
+                    {isExtractingSkills ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                        Extracting Skills...
+                      </>
+                    ) : (
+                      "Extract Skills with AI"
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Skills Section (for seekers) */}
             {user?.userType === 'seeker' && (

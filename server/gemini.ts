@@ -195,3 +195,50 @@ Categories: Delivery, Tutoring, Cleaning, Data Entry, Social Media, Photography,
     };
   }
 }
+
+export async function extractSkillsFromCV(cvText: string): Promise<{
+  skills: string[];
+  bio: string;
+}> {
+  try {
+    const prompt = `Analyze this CV/resume text and extract:
+
+CV TEXT: ${cvText}
+
+Extract:
+1. A comprehensive list of skills (technical, soft skills, tools, languages, etc.)
+2. A brief professional bio/summary (2-3 sentences) that captures the person's expertise and experience
+
+Focus on practical skills relevant to the Nigerian gig economy: delivery, tutoring, cleaning, data entry, social media, photography, event assistance, handyman work, content creation, customer service, etc.`;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-pro",
+      config: {
+        systemInstruction: "You are an expert CV analyzer. Extract skills and create professional summaries that help people get matched with gig opportunities.",
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "object",
+          properties: {
+            skills: { type: "array", items: { type: "string" } },
+            bio: { type: "string" }
+          },
+          required: ["skills", "bio"]
+        }
+      },
+      contents: prompt
+    });
+
+    const rawJson = response.text;
+    if (rawJson) {
+      return JSON.parse(rawJson);
+    } else {
+      throw new Error("Empty response from Gemini");
+    }
+  } catch (error) {
+    console.error("Gemini CV extraction error:", error);
+    return {
+      skills: [],
+      bio: "Unable to extract bio from CV at this time."
+    };
+  }
+}

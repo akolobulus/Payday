@@ -37,7 +37,6 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const [userType, setUserType] = useState<'seeker' | 'poster'>('seeker');
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   const {
     register,
@@ -45,12 +44,10 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
     formState: { errors },
     reset,
     setValue,
-    watch,
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupFormSchema),
     defaultValues: {
       userType: 'seeker',
-      skills: [],
       agreeToTerms: false,
     },
   });
@@ -85,36 +82,12 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
   const handleUserTypeChange = (type: 'seeker' | 'poster') => {
     setUserType(type);
     setValue('userType', type);
-    if (type === 'poster') {
-      setSelectedSkills([]);
-      setValue('skills', []);
-    }
-  };
-
-  const handleSkillChange = (skill: string, checked: boolean) => {
-    let newSkills;
-    if (checked) {
-      newSkills = [...selectedSkills, skill];
-    } else {
-      newSkills = selectedSkills.filter(s => s !== skill);
-    }
-    setSelectedSkills(newSkills);
-    setValue('skills', newSkills);
   };
 
   const onSubmit = (data: SignupFormData) => {
     const { confirmPassword, agreeToTerms, ...submitData } = data;
     signupMutation.mutate(submitData);
   };
-
-  const skills = [
-    { value: "delivery", label: "Delivery" },
-    { value: "tutoring", label: "Tutoring" },
-    { value: "cleaning", label: "Cleaning" },
-    { value: "data-entry", label: "Data Entry" },
-    { value: "photography", label: "Photography" },
-    { value: "writing", label: "Writing" },
-  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -236,30 +209,6 @@ export default function SignupModal({ isOpen, onClose, onSwitchToLogin }: Signup
               <p className="text-sm text-destructive mt-1">{errors.location.message}</p>
             )}
           </div>
-
-          {/* Seeker-specific fields */}
-          {userType === 'seeker' && (
-            <div data-testid="seeker-fields">
-              <Label>Skills (Select all that apply)</Label>
-              <div className="grid grid-cols-2 gap-2 mt-2">
-                {skills.map((skill) => (
-                  <div key={skill.value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`skill-${skill.value}`}
-                      checked={selectedSkills.includes(skill.value)}
-                      onCheckedChange={(checked) => 
-                        handleSkillChange(skill.value, checked as boolean)
-                      }
-                      data-testid={`checkbox-skill-${skill.value}`}
-                    />
-                    <Label htmlFor={`skill-${skill.value}`} className="text-sm">
-                      {skill.label}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Poster-specific fields */}
           {userType === 'poster' && (

@@ -14,6 +14,9 @@ export const users = pgTable("users", {
   userType: text("user_type").notNull(), // 'seeker' or 'poster'
   skills: text("skills").array(), // for seekers
   businessName: text("business_name"), // for posters
+  profilePicture: text("profile_picture"), // URL to profile picture
+  bio: text("bio"), // User bio/description
+  cvUrl: text("cv_url"), // URL to uploaded CV
   isVerified: boolean("is_verified").default(false),
   trustScore: integer("trust_score").notNull().default(0),
   currentStreak: integer("current_streak").notNull().default(0),
@@ -240,6 +243,9 @@ export const insertUserSchema = createInsertSchema(users).pick({
   userType: true,
   skills: true,
   businessName: true,
+  profilePicture: true,
+  bio: true,
+  cvUrl: true,
 });
 
 export const insertGigSchema = createInsertSchema(gigs).pick({

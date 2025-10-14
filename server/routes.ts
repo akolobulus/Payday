@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema, insertVideoCallSessionSchema, addPaymentMethodSchema, insertEscrowTransactionSchema, insertMessageSchema, insertAIAssistantChatSchema, insertBadgeSchema, insertDailyStreakSchema, insertBudgetTrackingSchema, insertSavingsVaultSchema, insertMicroloanSchema, insertGigApplicationSchema, updateApplicationStatusSchema } from "@shared/schema";
-import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
+import { generateGigRecommendations, matchUserToGig, analyzeGigDescription, extractSkillsFromCV } from "./gemini";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 // @ts-ignore: flutterwave-node-v3 doesn't have proper TypeScript definitions
@@ -98,6 +98,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         location: z.string().min(2),
         businessName: z.string().optional(),
         skills: z.array(z.string()).optional(),
+        profilePicture: z.string().optional(),
+        bio: z.string().optional(),
+        cvUrl: z.string().optional(),
       });
 
       const profileData = profileSchema.parse(req.body);
@@ -114,6 +117,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid input data", errors: error.errors });
       }
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // CV skill extraction endpoint
+  app.post("/api/user/extract-cv-skills", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const cvSchema = z.object({
+        cvText: z.string().min(50, "CV text must be at least 50 characters"),
+      });
+
+      const { cvText } = cvSchema.parse(req.body);
+      
+      // Extract skills and bio using Gemini AI
+      const extracted = await extractSkillsFromCV(cvText);
+
+      res.json(extracted);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to extract skills from CV" });
     }
   });
 
