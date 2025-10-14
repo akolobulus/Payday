@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation, type VideoCallSession, type InsertVideoCallSession, type Wallet, type InsertWallet, type PaymentMethod, type InsertPaymentMethod, type AddPaymentMethod, type EscrowTransaction, type InsertEscrowTransaction, type Transaction, type InsertTransaction, type Message, type InsertMessage, type Badge, type InsertBadge, type DailyStreak, type InsertDailyStreak, type AIAssistantChat, type InsertAIAssistantChat, type BudgetTracking, type InsertBudgetTracking, type SavingsVault, type InsertSavingsVault, type Course, type InsertCourse, type UserCourseProgress, type InsertUserCourseProgress, type Microloan, type InsertMicroloan } from "@shared/schema";
+import { type User, type InsertUser, type Gig, type InsertGig, type Review, type InsertReview, type CompletionConfirmation, type InsertCompletionConfirmation, type VideoCallSession, type InsertVideoCallSession, type Wallet, type InsertWallet, type PaymentMethod, type InsertPaymentMethod, type AddPaymentMethod, type EscrowTransaction, type InsertEscrowTransaction, type Transaction, type InsertTransaction, type Message, type InsertMessage, type Badge, type InsertBadge, type DailyStreak, type InsertDailyStreak, type AIAssistantChat, type InsertAIAssistantChat, type BudgetTracking, type InsertBudgetTracking, type SavingsVault, type InsertSavingsVault, type Course, type InsertCourse, type UserCourseProgress, type InsertUserCourseProgress, type Microloan, type InsertMicroloan, type GigApplication, type InsertGigApplication, type UpdateApplicationStatus } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { encryptSensitiveData, decryptSensitiveData, validateNigerianBankAccount } from "./payment-providers";
 
@@ -116,6 +116,14 @@ export interface IStorage {
   // Course management
   getAllCourses(): Promise<Course[]>;
   getUserCourseProgress(userId: string): Promise<UserCourseProgress[]>;
+  
+  // Gig Application management
+  createGigApplication(application: InsertGigApplication & { seekerId: string }): Promise<GigApplication>;
+  getApplicationsByGig(gigId: string): Promise<GigApplication[]>;
+  getApplicationsBySeeker(seekerId: string): Promise<GigApplication[]>;
+  updateApplicationStatus(applicationId: string, status: string): Promise<boolean>;
+  getApplicationCountByGig(gigId: string): Promise<number>;
+  getApplication(id: string): Promise<GigApplication | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -137,6 +145,7 @@ export class MemStorage implements IStorage {
   private microloans: Map<string, Microloan>;
   private courses: Map<string, Course>;
   private userCourseProgress: Map<string, UserCourseProgress>;
+  private gigApplications: Map<string, GigApplication>;
 
   constructor() {
     this.users = new Map();
@@ -157,10 +166,12 @@ export class MemStorage implements IStorage {
     this.microloans = new Map();
     this.courses = new Map();
     this.userCourseProgress = new Map();
+    this.gigApplications = new Map();
     this.initializeTestUsers();
     this.initializeTestGigs();
     this.initializeTestReviews();
     this.initializeTestWallets();
+    this.initializeTestApplications();
   }
 
   private initializeTestUsers() {
@@ -274,6 +285,7 @@ export class MemStorage implements IStorage {
         id: "gig-1",
         title: "Social Media Content Creation",
         description: "Create engaging posts and stories for a small business Instagram account. Need 10 posts and 5 stories for the week.",
+        audioDescriptionUrl: null,
         budget: 15000,
         category: "Social Media",
         location: "Jos, Plateau",
@@ -290,6 +302,7 @@ export class MemStorage implements IStorage {
         id: "gig-2",
         title: "Delivery Service - Electronics",
         description: "Pick up laptop from computer village and deliver to customer in Jos North. Must handle with care.",
+        audioDescriptionUrl: null,
         budget: 3000,
         category: "Delivery",
         location: "Jos North, Plateau",
@@ -306,6 +319,7 @@ export class MemStorage implements IStorage {
         id: "gig-3",
         title: "Data Entry - Customer Database",
         description: "Enter 200 customer records into Excel spreadsheet. All information will be provided in handwritten forms.",
+        audioDescriptionUrl: null,
         budget: 8000,
         category: "Data Entry",
         location: "Remote",
@@ -322,6 +336,7 @@ export class MemStorage implements IStorage {
         id: "gig-4",
         title: "Math Tutoring Session",
         description: "Teach secondary school student calculus and algebra. One-on-one session at student's home.",
+        audioDescriptionUrl: null,
         budget: 5000,
         category: "Tutoring",
         location: "Jos South, Plateau",
@@ -338,6 +353,7 @@ export class MemStorage implements IStorage {
         id: "gig-5",
         title: "Event Photography",
         description: "Photograph a birthday party - candid shots, group photos, and party highlights. Need edited photos within 24 hours.",
+        audioDescriptionUrl: null,
         budget: 20000,
         category: "Photography",
         location: "Jos, Plateau",
@@ -363,6 +379,7 @@ export class MemStorage implements IStorage {
     const gig: Gig = {
       ...insertGig,
       id,
+      audioDescriptionUrl: insertGig.audioDescriptionUrl || null,
       seekerId: null,
       status: "open",
       createdAt: new Date(),
@@ -1401,6 +1418,100 @@ export class MemStorage implements IStorage {
   async getUserCourseProgress(userId: string): Promise<UserCourseProgress[]> {
     return Array.from(this.userCourseProgress.values())
       .filter(progress => progress.userId === userId);
+  }
+
+  private initializeTestApplications() {
+    const mockSeekers = [
+      { id: "seeker-app-1", name: "Amina Mohammed", skills: ["social-media", "content-creation"], rating: 4.5 },
+      { id: "seeker-app-2", name: "Chidi Okafor", skills: ["delivery", "customer-service"], rating: 4.8 },
+      { id: "seeker-app-3", name: "Fatima Bello", skills: ["data-entry", "excel"], rating: 4.2 },
+      { id: "seeker-app-4", name: "Tunde Adebayo", skills: ["tutoring", "mathematics"], rating: 4.9 },
+      { id: "seeker-app-5", name: "Blessing Nwosu", skills: ["photography", "photo-editing"], rating: 4.6 },
+    ];
+
+    const testGigs = ["gig-1", "gig-2", "gig-3", "gig-4", "gig-5"];
+
+    testGigs.forEach((gigId, gigIndex) => {
+      const numApplications = Math.floor(Math.random() * 3) + 3;
+      for (let i = 0; i < numApplications && i < mockSeekers.length; i++) {
+        const seeker = mockSeekers[i];
+        const application: GigApplication = {
+          id: `app-${gigId}-${seeker.id}`,
+          gigId,
+          seekerId: seeker.id,
+          status: "pending",
+          coverLetter: `I am ${seeker.name} and I'm very interested in this gig. With my skills in ${seeker.skills.join(", ")}, I believe I can deliver excellent results. I have a ${seeker.rating}/5 rating and would love to work on this project.`,
+          audioUrl: null,
+          createdAt: new Date(Date.now() - (i * 3600000)),
+        };
+        this.gigApplications.set(application.id, application);
+      }
+    });
+  }
+
+  async createGigApplication(insertApplication: InsertGigApplication & { seekerId: string }): Promise<GigApplication> {
+    const id = randomUUID();
+    const application: GigApplication = {
+      ...insertApplication,
+      id,
+      status: "pending",
+      audioUrl: insertApplication.audioUrl || null,
+      createdAt: new Date(),
+    };
+    
+    this.gigApplications.set(id, application);
+    
+    const gig = await this.getGig(insertApplication.gigId);
+    if (gig && gig.status === "open") {
+      gig.status = "has_applications";
+      this.gigs.set(gig.id, gig);
+    }
+    
+    return application;
+  }
+
+  async getApplicationsByGig(gigId: string): Promise<GigApplication[]> {
+    return Array.from(this.gigApplications.values())
+      .filter(app => app.gigId === gigId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0));
+  }
+
+  async getApplicationsBySeeker(seekerId: string): Promise<GigApplication[]> {
+    return Array.from(this.gigApplications.values())
+      .filter(app => app.seekerId === seekerId);
+  }
+
+  async updateApplicationStatus(applicationId: string, status: string): Promise<boolean> {
+    const application = this.gigApplications.get(applicationId);
+    if (!application) {
+      return false;
+    }
+
+    application.status = status;
+    this.gigApplications.set(applicationId, application);
+
+    if (status === "accepted") {
+      await this.assignSeekerToGig(application.gigId, application.seekerId);
+      
+      const otherApplications = await this.getApplicationsByGig(application.gigId);
+      otherApplications.forEach(app => {
+        if (app.id !== applicationId && app.status === "pending") {
+          app.status = "rejected";
+          this.gigApplications.set(app.id, app);
+        }
+      });
+    }
+
+    return true;
+  }
+
+  async getApplicationCountByGig(gigId: string): Promise<number> {
+    const applications = await this.getApplicationsByGig(gigId);
+    return applications.length;
+  }
+
+  async getApplication(id: string): Promise<GigApplication | undefined> {
+    return this.gigApplications.get(id);
   }
 }
 

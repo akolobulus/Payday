@@ -26,6 +26,7 @@ export const gigs = pgTable("gigs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: text("title").notNull(),
   description: text("description").notNull(),
+  audioDescriptionUrl: text("audio_description_url"),
   budget: integer("budget").notNull(),
   category: text("category").notNull(),
   location: text("location").notNull(),
@@ -219,6 +220,16 @@ export const microloans = pgTable("microloans", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const gigApplications = pgTable("gig_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gigId: varchar("gig_id").notNull().references(() => gigs.id),
+  seekerId: varchar("seeker_id").notNull().references(() => users.id),
+  status: text("status").notNull().default("pending"), // 'pending', 'accepted', 'rejected'
+  coverLetter: text("cover_letter").notNull(),
+  audioUrl: text("audio_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   password: true,
@@ -234,6 +245,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export const insertGigSchema = createInsertSchema(gigs).pick({
   title: true,
   description: true,
+  audioDescriptionUrl: true,
   budget: true,
   category: true,
   location: true,
@@ -373,6 +385,18 @@ export const insertMicroloanSchema = createInsertSchema(microloans).pick({
   dueDate: true,
 });
 
+export const insertGigApplicationSchema = createInsertSchema(gigApplications).pick({
+  gigId: true,
+  coverLetter: true,
+  audioUrl: true,
+}).extend({
+  coverLetter: z.string().min(1, "Cover letter is required").max(500, "Cover letter must be less than 500 characters"),
+});
+
+export const updateApplicationStatusSchema = z.object({
+  status: z.enum(["accepted", "rejected"]),
+});
+
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -416,6 +440,8 @@ export type InsertSavingsVault = z.infer<typeof insertSavingsVaultSchema>;
 export type InsertCourse = z.infer<typeof insertCourseSchema>;
 export type InsertUserCourseProgress = z.infer<typeof insertUserCourseProgressSchema>;
 export type InsertMicroloan = z.infer<typeof insertMicroloanSchema>;
+export type InsertGigApplication = z.infer<typeof insertGigApplicationSchema>;
+export type UpdateApplicationStatus = z.infer<typeof updateApplicationStatusSchema>;
 export type AddPaymentMethod = z.infer<typeof addPaymentMethodSchema>;
 
 export type User = typeof users.$inferSelect;
@@ -436,4 +462,5 @@ export type SavingsVault = typeof savingsVault.$inferSelect;
 export type Course = typeof courses.$inferSelect;
 export type UserCourseProgress = typeof userCourseProgress.$inferSelect;
 export type Microloan = typeof microloans.$inferSelect;
+export type GigApplication = typeof gigApplications.$inferSelect;
 export type LoginCredentials = z.infer<typeof loginSchema>;

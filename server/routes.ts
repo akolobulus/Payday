@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema, insertVideoCallSessionSchema, addPaymentMethodSchema, insertEscrowTransactionSchema, insertMessageSchema, insertAIAssistantChatSchema, insertBadgeSchema, insertDailyStreakSchema, insertBudgetTrackingSchema, insertSavingsVaultSchema, insertMicroloanSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertGigSchema, insertReviewSchema, insertCompletionConfirmationSchema, insertVideoCallSessionSchema, addPaymentMethodSchema, insertEscrowTransactionSchema, insertMessageSchema, insertAIAssistantChatSchema, insertBadgeSchema, insertDailyStreakSchema, insertBudgetTrackingSchema, insertSavingsVaultSchema, insertMicroloanSchema, insertGigApplicationSchema, updateApplicationStatusSchema } from "@shared/schema";
 import { generateGigRecommendations, matchUserToGig, analyzeGigDescription } from "./gemini";
 import { z } from "zod";
 import { nanoid } from "nanoid";
@@ -505,6 +505,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       res.json(analytics);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Gig Application routes
+  app.post("/api/gigs/:gigId/applications", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      if (currentUser.userType !== 'seeker') {
+        return res.status(403).json({ message: "Only gig seekers can apply to gigs" });
+      }
+
+      const { gigId } = req.params;
+      const applicationData = insertGigApplicationSchema.parse({
+        ...req.body,
+        gigId,
+      });
+
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      if (gig.status !== "open" && gig.status !== "has_applications") {
+        return res.status(400).json({ message: "This gig is no longer accepting applications" });
+      }
+
+      const existingApplications = await storage.getApplicationsByGig(gigId);
+      const alreadyApplied = existingApplications.some(app => app.seekerId === currentUser.id);
+      if (alreadyApplied) {
+        return res.status(400).json({ message: "You have already applied to this gig" });
+      }
+
+      const application = await storage.createGigApplication({
+        ...applicationData,
+        seekerId: currentUser.id,
+      });
+
+      res.status(201).json(application);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/gigs/:gigId/applications", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId } = req.params;
+      const gig = await storage.getGig(gigId);
+      
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      if (gig.posterId !== currentUser.id) {
+        return res.status(403).json({ message: "Only the gig poster can view applications" });
+      }
+
+      const applications = await storage.getApplicationsByGig(gigId);
+      res.json(applications);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.patch("/api/gigs/:gigId/applications/:applicationId", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const { gigId, applicationId } = req.params;
+      const { status } = updateApplicationStatusSchema.parse(req.body);
+
+      const gig = await storage.getGig(gigId);
+      if (!gig) {
+        return res.status(404).json({ message: "Gig not found" });
+      }
+
+      if (gig.posterId !== currentUser.id) {
+        return res.status(403).json({ message: "Only the gig poster can accept/reject applications" });
+      }
+
+      const application = await storage.getApplication(applicationId);
+      if (!application) {
+        return res.status(404).json({ message: "Application not found" });
+      }
+
+      if (application.gigId !== gigId) {
+        return res.status(400).json({ message: "Application does not belong to this gig" });
+      }
+
+      const success = await storage.updateApplicationStatus(applicationId, status);
+      if (!success) {
+        return res.status(500).json({ message: "Failed to update application status" });
+      }
+
+      const updatedApplication = await storage.getApplication(applicationId);
+      res.json(updatedApplication);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.get("/api/gigs/:gigId/applications/count", async (req, res) => {
+    try {
+      const { gigId } = req.params;
+      const count = await storage.getApplicationCountByGig(gigId);
+      res.json({ count });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Audio upload endpoint (mock implementation for in-memory storage)
+  app.post("/api/uploads/audio", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+
+      const audioUrl = `https://audio-storage.payday.ng/${nanoid()}.webm`;
+      res.json({ url: audioUrl });
     } catch (error) {
       res.status(500).json({ message: "Internal server error" });
     }
