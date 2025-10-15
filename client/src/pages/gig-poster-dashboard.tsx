@@ -3,7 +3,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,7 +18,8 @@ import AIAssistant from "@/components/ui/ai-assistant";
 import ZeroBrokeMode from "@/components/ui/zero-broke-mode";
 import SavingsVault from "@/components/ui/savings-vault";
 import BudgetTracker from "@/components/ui/budget-tracker";
-import { Plus, Briefcase, Users, TrendingUp, DollarSign, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
+import { Plus, Briefcase, Users, TrendingUp, Coins, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { AudioRecorder } from "@/components/ui/audio-recorder";
 import { GigApplicationsDialog } from "@/components/ui/gig-applications-dialog";
 import { useForm } from "react-hook-form";
@@ -38,6 +38,7 @@ const gigFormSchema = insertGigSchema.extend({
 type GigFormData = z.infer<typeof gigFormSchema>;
 
 export default function GigPosterDashboard() {
+  const [activeTab, setActiveTab] = useState("my-gigs");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [, setLocation] = useLocation();
@@ -215,14 +216,17 @@ export default function GigPosterDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="animate-pulse space-y-8">
-            <div className="h-48 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
-              ))}
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex">
+        <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} userType="poster" />
+        <div className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="animate-pulse space-y-8">
+              <div className="h-48 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -231,79 +235,12 @@ export default function GigPosterDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 pt-20">
-      <Tabs defaultValue="gigs" className="w-full">
-        <div className="border-b border-gray-200 dark:border-gray-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <TabsList className="grid w-full max-w-6xl grid-cols-9 bg-transparent border-0 h-auto p-0">
-              <TabsTrigger 
-                value="gigs" 
-                data-testid="tab-gigs"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
-              >
-                My Gigs
-              </TabsTrigger>
-              <TabsTrigger 
-                value="gamification" 
-                data-testid="tab-gamification"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
-              >
-                Achievements
-              </TabsTrigger>
-              <TabsTrigger 
-                value="ai-assistant" 
-                data-testid="tab-ai-assistant"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
-              >
-                AI Assistant
-              </TabsTrigger>
-              <TabsTrigger 
-                value="financial" 
-                data-testid="tab-financial"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
-              >
-                Financial
-              </TabsTrigger>
-              <TabsTrigger 
-                value="chat" 
-                data-testid="tab-chat"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
-              >
-                Chat
-              </TabsTrigger>
-              <TabsTrigger 
-                value="video-calls" 
-                data-testid="tab-video-calls"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
-              >
-                Videos
-              </TabsTrigger>
-              <TabsTrigger 
-                value="analytics" 
-                data-testid="tab-analytics"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
-              >
-                Analytics
-              </TabsTrigger>
-              <TabsTrigger 
-                value="reviews" 
-                data-testid="tab-reviews"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
-              >
-                Reviews
-              </TabsTrigger>
-              <TabsTrigger 
-                value="profile" 
-                data-testid="tab-profile"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-green-600 rounded-none bg-transparent text-xs"
-              >
-                Profile
-              </TabsTrigger>
-            </TabsList>
-          </div>
-        </div>
-
-        <TabsContent value="gigs" className="mt-0">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex">
+      <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} userType="poster" />
+      
+      <div className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+        {activeTab === "my-gigs" && (
+          <div>
           {/* Wallet Section */}
           <div className="bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-800 dark:to-emerald-800 border-b border-gray-200 dark:border-gray-700">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -335,7 +272,7 @@ export default function GigPosterDashboard() {
                   <WalletTopUp 
                     trigger={
                       <Button className="bg-white text-green-600 hover:bg-green-50" data-testid="button-fund-wallet">
-                        <DollarSign className="h-4 w-4 mr-2" />
+                        <Coins className="h-4 w-4 mr-2" />
                         Fund Wallet
                       </Button>
                     } 
@@ -604,7 +541,7 @@ export default function GigPosterDashboard() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <Coins className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold" data-testid="total-spent">
@@ -852,27 +789,31 @@ export default function GigPosterDashboard() {
               )}
             </div>
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="chat" className="mt-0">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">Messages</CardTitle>
-                <CardDescription className="text-base">
-                  Chat with gig seekers about your posted gigs
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Your chat conversations will appear here once candidates apply to your gigs.
-                </p>
-              </CardContent>
-            </Card>
+        {activeTab === "chat" && (
+          <div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl">Messages</CardTitle>
+                  <CardDescription className="text-base">
+                    Chat with gig seekers about your posted gigs
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Your chat conversations will appear here once candidates apply to your gigs.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </TabsContent>
+        )}
 
-        <TabsContent value="video-calls" className="mt-0">
+        {activeTab === "video-calls" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-2xl font-bold">Video Call History</h3>
@@ -936,9 +877,11 @@ export default function GigPosterDashboard() {
               </Card>
             )}
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="analytics" className="mt-0">
+        {activeTab === "analytics" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             <Card>
               <CardHeader>
@@ -979,9 +922,11 @@ export default function GigPosterDashboard() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="reviews" className="mt-0">
+        {activeTab === "reviews" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Card>
               <CardHeader>
@@ -995,21 +940,27 @@ export default function GigPosterDashboard() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="gamification" className="mt-0">
+        {activeTab === "gamification" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {user && <GamificationDashboard user={user} />}
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="ai-assistant" className="mt-0">
+        {activeTab === "ai-assistant" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {user && <AIAssistant userId={user.id} />}
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="financial" className="mt-0">
+        {activeTab === "financial" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="space-y-6">
               {user && (
@@ -1021,14 +972,17 @@ export default function GigPosterDashboard() {
               )}
             </div>
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="profile" className="mt-0">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <ProfileEdit />
+        {activeTab === "profile" && (
+          <div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <ProfileEdit />
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
 }

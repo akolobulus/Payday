@@ -3,7 +3,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
@@ -16,7 +15,8 @@ import AIAssistant from "@/components/ui/ai-assistant";
 import ZeroBrokeMode from "@/components/ui/zero-broke-mode";
 import SavingsVault from "@/components/ui/savings-vault";
 import BudgetTracker from "@/components/ui/budget-tracker";
-import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, DollarSign, Video, PhoneCall, Wallet, ArrowUpRight, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
+import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
+import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, Coins, Video, PhoneCall, Wallet, ArrowUpRight, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
 import { AudioPlayer } from "@/components/ui/audio-recorder";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -50,6 +50,7 @@ const LOCATIONS = [
 ];
 
 export default function GigSeekerDashboard() {
+  const [activeTab, setActiveTab] = useState("browse");
   const [searchQuery, setSearchQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -190,16 +191,19 @@ export default function GigSeekerDashboard() {
 
   if (gigsLoading || recLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="animate-pulse space-y-8">
-            <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              <div className="h-96 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
-              <div className="lg:col-span-3 space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-48 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
-                ))}
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex">
+        <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} userType="seeker" />
+        <div className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="animate-pulse space-y-8">
+              <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="h-96 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+                <div className="lg:col-span-3 space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-48 bg-gray-200 dark:bg-gray-800 rounded-xl"></div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -209,86 +213,12 @@ export default function GigSeekerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 pt-20">
-      <Tabs defaultValue="browse" className="w-full">
-        <div className="border-b border-gray-200 dark:border-gray-800">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <TabsList className="grid w-full max-w-6xl grid-cols-10 bg-transparent border-0 h-auto p-0">
-              <TabsTrigger 
-                value="browse" 
-                data-testid="tab-browse"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent text-xs"
-              >
-                Browse
-              </TabsTrigger>
-              <TabsTrigger 
-                value="recommendations" 
-                data-testid="tab-recommendations"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent text-xs"
-              >
-                AI Picks
-              </TabsTrigger>
-              <TabsTrigger 
-                value="applications" 
-                data-testid="tab-applications"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent text-xs"
-              >
-                Applications
-              </TabsTrigger>
-              <TabsTrigger 
-                value="gamification" 
-                data-testid="tab-gamification"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent text-xs"
-              >
-                Achievements
-              </TabsTrigger>
-              <TabsTrigger 
-                value="ai-assistant" 
-                data-testid="tab-ai-assistant"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent text-xs"
-              >
-                AI Assistant
-              </TabsTrigger>
-              <TabsTrigger 
-                value="financial" 
-                data-testid="tab-financial"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent text-xs"
-              >
-                Financial
-              </TabsTrigger>
-              <TabsTrigger 
-                value="chat" 
-                data-testid="tab-chat"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent text-xs"
-              >
-                Chat
-              </TabsTrigger>
-              <TabsTrigger 
-                value="video-calls" 
-                data-testid="tab-video-calls"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent text-xs"
-              >
-                Videos
-              </TabsTrigger>
-              <TabsTrigger 
-                value="reviews" 
-                data-testid="tab-reviews"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent text-xs"
-              >
-                Reviews
-              </TabsTrigger>
-              <TabsTrigger 
-                value="profile" 
-                data-testid="tab-profile"
-                className="data-[state=active]:border-b-2 data-[state=active]:border-blue-600 rounded-none bg-transparent text-xs"
-              >
-                Profile
-              </TabsTrigger>
-            </TabsList>
-          </div>
-        </div>
-
-        <TabsContent value="browse" className="mt-0">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex">
+      <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} userType="seeker" />
+      
+      <div className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+        {activeTab === "browse" && (
+          <div>
           {/* Wallet Section */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-800 border-b border-gray-200 dark:border-gray-700">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -315,7 +245,7 @@ export default function GigSeekerDashboard() {
                   <WalletTopUp 
                     trigger={
                       <Button className="bg-white text-blue-600 hover:bg-blue-50" data-testid="button-fund-wallet">
-                        <DollarSign className="h-4 w-4 mr-2" />
+                        <Coins className="h-4 w-4 mr-2" />
                         Fund Wallet
                       </Button>
                     } 
@@ -567,9 +497,11 @@ export default function GigSeekerDashboard() {
               </div>
             </div>
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="recommendations" className="mt-0">
+        {activeTab === "recommendations" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             <Card>
               <CardHeader>
@@ -632,9 +564,11 @@ export default function GigSeekerDashboard() {
               </Card>
             )}
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="applications" className="mt-0">
+        {activeTab === "applications" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             <Card>
               <CardHeader>
@@ -667,7 +601,7 @@ export default function GigSeekerDashboard() {
                     {['pending_completion', 'awaiting_mutual_confirmation'].includes(gig.status) && (
                       <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
                         <div className="flex items-center gap-3">
-                          <DollarSign className="h-5 w-5 text-yellow-600" />
+                          <Coins className="h-5 w-5 text-yellow-600" />
                           <div>
                             <p className="font-semibold text-yellow-900 dark:text-yellow-100">
                               Pending Payment
@@ -750,9 +684,11 @@ export default function GigSeekerDashboard() {
               </Card>
             )}
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="chat" className="mt-0">
+        {activeTab === "chat" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Card>
               <CardHeader>
@@ -768,9 +704,11 @@ export default function GigSeekerDashboard() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="video-calls" className="mt-0">
+        {activeTab === "video-calls" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
             <div className="flex justify-between items-center">
               <h3 className="text-2xl font-bold">Video Call History</h3>
@@ -834,9 +772,11 @@ export default function GigSeekerDashboard() {
               </Card>
             )}
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="reviews" className="mt-0">
+        {activeTab === "reviews" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Card>
               <CardHeader>
@@ -850,21 +790,27 @@ export default function GigSeekerDashboard() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="gamification" className="mt-0">
+        {activeTab === "gamification" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {user && <GamificationDashboard user={user} />}
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="ai-assistant" className="mt-0">
+        {activeTab === "ai-assistant" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {user && <AIAssistant userId={user.id} />}
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="financial" className="mt-0">
+        {activeTab === "financial" && (
+          <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="space-y-6">
               {user && (
@@ -876,14 +822,35 @@ export default function GigSeekerDashboard() {
               )}
             </div>
           </div>
-        </TabsContent>
+        </div>
+        )}
 
-        <TabsContent value="profile" className="mt-0">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <ProfileEdit />
+        {activeTab === "profile" && (
+          <div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <ProfileEdit />
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
+        )}
+
+        {activeTab === "analytics" && (
+          <div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl">Analytics Dashboard</CardTitle>
+                  <CardDescription>Track your performance and earnings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Analytics features coming soon. Monitor your gig performance, earnings trends, and success metrics.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
