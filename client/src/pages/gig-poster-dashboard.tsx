@@ -264,7 +264,7 @@ export default function GigPosterDashboard() {
         <DashboardHeader
           userName={user?.firstName || 'User'}
           userInitials={getUserInitials()}
-          walletBalance={wallet?.availableBalance ? wallet.availableBalance / 100 : 0}
+          walletBalance={wallet?.balance ? wallet.balance / 100 : 0}
           onWalletClick={handleWalletClick}
           onProfileClick={handleProfileClick}
           onNotificationsClick={handleNotificationsClick}
