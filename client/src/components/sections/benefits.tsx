@@ -2,33 +2,48 @@ export default function Benefits() {
   const benefits = [
     {
       icon: "fas fa-bolt",
-      title: "Instant Payments",
-      description: "Get paid in 30 seconds, not 30 days. Direct transfers to your bank account or mobile money wallet.",
+      title: "Instant Payments & Wallet",
+      description: "Get paid in 30 seconds with escrow protection. Manage earnings, top-up, and withdraw instantly to your bank or mobile money.",
     },
     {
       icon: "fas fa-robot",
-      title: "AI-Powered Matching",
-      description: "Our smart algorithm connects you with the most relevant gigs based on your skills and location.",
+      title: "AI-Powered Matching & Zee Assistant",
+      description: "Smart algorithm matches you with perfect gigs. Chat with Zee, our AI assistant, for career advice, gig suggestions, and CV optimization.",
     },
     {
-      icon: "fas fa-map-marker-alt",
-      title: "Local Focus",
-      description: "Find opportunities in your neighborhood. Work close to home, school, or wherever you are in Nigeria.",
+      icon: "fas fa-piggy-bank",
+      title: "Zero Broke Mode & Savings",
+      description: "Access microloans when you need them. Set savings targets and automate deposits from your earnings to reach your financial goals.",
     },
     {
-      icon: "fas fa-shield-alt",
-      title: "Secure & Safe",
-      description: "All users are verified. Payments are secured with bank-level encryption. Your money and data are protected.",
+      icon: "fas fa-chart-line",
+      title: "Budget Tracker & Analytics",
+      description: "Track monthly expenses, manage budgets across categories, and get insights on your earnings and spending patterns.",
+    },
+    {
+      icon: "fas fa-comments",
+      title: "In-App Chat & Video Calls",
+      description: "Communicate directly with gig posters and seekers. Conduct video interviews with screen sharing and call recording features.",
     },
     {
       icon: "fas fa-gamepad",
-      title: "Earn Rewards",
-      description: "Build your reliability score by completing gigs. Unlock better opportunities and higher-paying work.",
+      title: "Gamification & Rewards",
+      description: "Earn badges, build streaks, unlock achievements, and climb leaderboards. Build your trust score for better opportunities.",
+    },
+    {
+      icon: "fas fa-shield-alt",
+      title: "Verification & Security",
+      description: "All users verified with ratings and reviews. Bank-level encryption, escrow protection, and trust scores ensure safe transactions.",
+    },
+    {
+      icon: "fas fa-map-marker-alt",
+      title: "Local Gig Discovery",
+      description: "Find opportunities in your neighborhood. Browse by category, location, urgency, and budget. Work close to home or school.",
     },
     {
       icon: "fas fa-mobile-alt",
       title: "Mobile-First Design",
-      description: "Optimized for your smartphone. Find, apply, and complete gigs all from your mobile device.",
+      description: "Optimized for smartphones. Post gigs with text or audio descriptions. Apply with cover letters and audio introductions.",
     },
   ];
 

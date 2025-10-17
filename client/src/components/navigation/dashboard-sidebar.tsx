@@ -18,7 +18,8 @@ import {
   ChevronDown,
   Package,
   Wallet,
-  Users
+  Users,
+  Bot
 } from "lucide-react";
 import {
   Tooltip,
@@ -49,6 +50,7 @@ const seekerMenuItems = [
   { id: 'browse', label: 'Browse Gigs', icon: ShoppingBag, tooltip: 'Find available gigs' },
   { id: 'applications', label: 'My Applications', icon: FolderKanban, tooltip: 'View your applications' },
   { id: 'recommendations', label: 'Recommendations', icon: Store, tooltip: 'AI-powered gig recommendations' },
+  { id: 'ai-assistant', label: 'Zee AI Assistant', icon: Bot, tooltip: 'Chat with Zee for career advice & gig suggestions' },
   { id: 'profile', label: 'Profile', icon: MessageSquare, tooltip: 'Your profile' },
   { id: 'financial', label: 'Wallet', icon: Wallet, tooltip: 'Manage your wallet' },
   { id: 'chat', label: 'Messages', icon: Calendar, tooltip: 'Chat with posters' },
@@ -59,6 +61,7 @@ const posterMenuItems = [
   { id: 'overview', label: 'Overview', icon: Grid, tooltip: 'Dashboard overview' },
   { id: 'my-gigs', label: 'My Gigs', icon: Package, tooltip: 'View and manage your gigs' },
   { id: 'analytics', label: 'Analytics', icon: Store, tooltip: 'View analytics' },
+  { id: 'ai-assistant', label: 'Zee AI Assistant', icon: Bot, tooltip: 'Chat with Zee for business insights & help' },
   { id: 'profile', label: 'Profile', icon: FolderKanban, tooltip: 'Your profile' },
   { id: 'financial', label: 'Wallet', icon: Wallet, tooltip: 'Manage your wallet' },
   { id: 'chat', label: 'Messages', icon: MessageSquare, tooltip: 'Chat with seekers' },
