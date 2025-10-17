@@ -220,7 +220,7 @@ export default function GigSeekerDashboard() {
   };
 
   const handleWalletClick = () => {
-    setActiveTab('wallet');
+    setLocation('/wallet');
   };
 
   const handleProfileClick = () => {

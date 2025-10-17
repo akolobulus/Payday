@@ -222,7 +222,7 @@ export default function GigPosterDashboard() {
   };
 
   const handleWalletClick = () => {
-    setActiveTab('wallet');
+    setLocation('/wallet');
   };
 
   const handleProfileClick = () => {
