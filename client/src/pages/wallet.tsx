@@ -94,7 +94,7 @@ export default function WalletPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
-      <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} userType={user?.userType || 'seeker'} />
+      <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} userType={(user?.userType as "seeker" | "poster") || 'seeker'} />
       
       <div className="flex-1 lg:ml-64">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -271,9 +271,9 @@ export default function WalletPage() {
 
           {/* Additional Features */}
           <div className="space-y-8">
-            <ZeroBrokeMode />
-            <SavingsVault />
-            <BudgetTracker />
+            {user && <ZeroBrokeMode user={user} />}
+            {user && <SavingsVault userId={user.id} />}
+            {user && <BudgetTracker userId={user.id} />}
           </div>
         </div>
       </div>
