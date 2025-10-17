@@ -76,8 +76,13 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
   });
 
   const handleTabClick = (tabId: string) => {
-    onTabChange(tabId);
-    setIsMobileMenuOpen(false);
+    if (tabId === 'financial') {
+      setLocation('/wallet');
+      setIsMobileMenuOpen(false);
+    } else {
+      onTabChange(tabId);
+      setIsMobileMenuOpen(false);
+    }
   };
 
   return (
