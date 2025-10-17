@@ -37,8 +37,8 @@ export default function Hero({ onOpenSignup }: HeroProps) {
 
   const handleDemoLogin = (userType: 'seeker' | 'poster') => {
     const credentials = userType === 'seeker' 
-      ? { email: "bulusakolo6@gmail.com", password: "123456789" }
-      : { email: "officialarikpa@gmail.com", password: "123456789" };
+      ? { email: "demo@payday.ng", password: "123456789" }
+      : { email: "team@payday.ng", password: "123456789" };
     
     loginMutation.mutate(credentials);
   };
