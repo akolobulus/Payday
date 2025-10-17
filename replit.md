@@ -1,8 +1,18 @@
-# Payday - Instant Gigs Platform for Nigerian Youth
+# Autonoms - AI Agent Marketplace Platform
 
 ## Overview
 
-Payday is a full-stack web application designed to connect Nigerian youth with instant-paying gigs. The platform serves as a marketplace where gig seekers (students, fresh graduates) can find quick work opportunities, while gig posters (businesses, individuals) can find reliable help for their tasks. The core value proposition is instant payment upon gig completion, addressing the financial needs of young Nigerians who need money "today, not tomorrow."
+Autonoms is a full-stack web application designed as an AI Agent marketplace platform. The platform features a modern, professional design with a teal/cyan color scheme inspired by the Autonoms brand. It provides dashboards for both buyers and sellers with comprehensive navigation, quick actions, and analytics.
+
+## Recent Changes (October 17, 2025)
+
+- **Rebranded from Payday to Autonoms** with new teal/cyan color scheme (hsl(174, 72%, 56%))
+- **Created new DashboardHeader** component with search bar, wallet display, user avatar initials, and notification bell
+- **Updated DashboardSidebar** with Autonoms menu items: Apps, Seller/Buyer, Agent Store, Projects, Conversations, Schedule, Learning, Saved
+- **Redesigned DashboardOverview** with personalized greeting, Quick Links section (Sell Agent, Manage Store, Browse Agents, My Projects, Learn), stats cards (Total Agents Deployed, Total Hours Saved, Total Cost Saved), and Agent Summary
+- **Added hover tooltips** to all interactive elements for better UX
+- **Implemented mobile-first responsive design** with proper breakpoints for all dashboard components
+- **Fixed navigation** to properly route all quick links to existing tabs
 
 ## User Preferences
 
