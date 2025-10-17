@@ -2,24 +2,24 @@ import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { 
-  Briefcase, 
-  Trophy, 
-  Bot, 
-  Wallet, 
-  MessageSquare, 
-  Video, 
-  BarChart3, 
-  Star, 
-  User, 
-  Menu, 
+  Grid,
+  ShoppingBag,
+  Store,
+  FolderKanban,
+  MessageSquare,
+  Calendar,
+  GraduationCap,
+  Bookmark,
+  Settings,
+  Menu,
   X,
   LogOut,
-  Home
+  Home,
+  ChevronDown
 } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import paydayLogoPath from "@assets/20250819_104458-removebg-preview_1755623157202.png";
 
 interface DashboardSidebarProps {
   activeTab: string;
@@ -28,27 +28,25 @@ interface DashboardSidebarProps {
 }
 
 const seekerMenuItems = [
-  { id: 'browse', label: 'My Gigs', icon: Briefcase },
-  { id: 'gamification', label: 'Achievements', icon: Trophy },
-  { id: 'ai-assistant', label: 'AI Assistant', icon: Bot },
-  { id: 'financial', label: 'Financial', icon: Wallet },
-  { id: 'chat', label: 'Chat', icon: MessageSquare },
-  { id: 'video-calls', label: 'Video', icon: Video },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { id: 'reviews', label: 'Reviews', icon: Star },
-  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'overview', label: 'Overview', icon: Grid },
+  { id: 'browse', label: 'Browse Gigs', icon: ShoppingBag },
+  { id: 'my-gigs', label: 'My Gigs', icon: Store },
+  { id: 'projects', label: 'Projects', icon: FolderKanban },
+  { id: 'chat', label: 'Conversations', icon: MessageSquare },
+  { id: 'schedule', label: 'Schedule', icon: Calendar },
+  { id: 'learning', label: 'Learning', icon: GraduationCap },
+  { id: 'saved', label: 'Saved', icon: Bookmark },
 ];
 
 const posterMenuItems = [
-  { id: 'my-gigs', label: 'My Gigs', icon: Briefcase },
-  { id: 'gamification', label: 'Achievements', icon: Trophy },
-  { id: 'ai-assistant', label: 'AI Assistant', icon: Bot },
-  { id: 'financial', label: 'Financial', icon: Wallet },
-  { id: 'chat', label: 'Chat', icon: MessageSquare },
-  { id: 'video-calls', label: 'Video', icon: Video },
-  { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-  { id: 'reviews', label: 'Reviews', icon: Star },
-  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'overview', label: 'Overview', icon: Grid },
+  { id: 'post-gig', label: 'Post Gig', icon: ShoppingBag },
+  { id: 'manage-gigs', label: 'Manage Gigs', icon: Store },
+  { id: 'projects', label: 'Projects', icon: FolderKanban },
+  { id: 'chat', label: 'Conversations', icon: MessageSquare },
+  { id: 'schedule', label: 'Schedule', icon: Calendar },
+  { id: 'learning', label: 'Learning', icon: GraduationCap },
+  { id: 'saved', label: 'Saved', icon: Bookmark },
 ];
 
 export default function DashboardSidebar({ activeTab, onTabChange, userType }: DashboardSidebarProps) {
@@ -77,12 +75,9 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
   return (
     <>
       {/* Mobile Header with Menu Toggle */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-2">
-            <img src={paydayLogoPath} alt="Payday" className="w-8 h-8" />
-            <span className="font-bold text-lg text-payday-blue dark:text-white">Payday</span>
-          </div>
+          <span className="font-bold text-xl text-payday-blue">Payday</span>
           <Button
             variant="ghost"
             size="sm"
@@ -97,7 +92,7 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
       {/* Sidebar */}
       <div
         className={`
-          fixed top-0 left-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-40
+          fixed top-0 left-0 h-full bg-white border-r border-gray-200 z-40
           transition-transform duration-300 ease-in-out
           lg:translate-x-0 lg:w-64
           ${isMobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full'}
@@ -106,13 +101,12 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
       >
         <div className="flex flex-col h-full">
           {/* Logo - Desktop */}
-          <div className="hidden lg:flex items-center gap-2 p-6 border-b border-gray-200 dark:border-gray-800">
-            <img src={paydayLogoPath} alt="Payday" className="w-10 h-10" />
-            <span className="font-bold text-xl text-payday-blue dark:text-white">Payday</span>
+          <div className="hidden lg:flex items-center p-6 border-b border-gray-200">
+            <span className="font-bold text-2xl text-payday-blue">Payday</span>
           </div>
 
           {/* Navigation Menu */}
-          <nav className="flex-1 overflow-y-auto pt-20 lg:pt-6 pb-6 px-3">
+          <nav className="flex-1 overflow-y-auto pt-20 lg:pt-6 pb-6 px-4">
             <div className="space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
@@ -127,8 +121,8 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
                       w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
                       transition-colors duration-150
                       ${isActive 
-                        ? 'bg-payday-blue text-white' 
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-gray-100 text-gray-900' 
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                       }
                     `}
                   >
@@ -141,27 +135,26 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
           </nav>
 
           {/* Footer Actions */}
-          <div className="border-t border-gray-200 dark:border-gray-800 p-3 space-y-1">
+          <div className="border-t border-gray-200 p-4 space-y-2">
+            <button
+              onClick={() => onTabChange('settings')}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+                text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+              data-testid="sidebar-settings"
+            >
+              <Settings className="h-5 w-5" />
+              <span>Settings</span>
+            </button>
             <Link href="/">
               <button
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                  text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 data-testid="sidebar-home"
               >
                 <Home className="h-5 w-5" />
                 <span>Home</span>
               </button>
             </Link>
-            <button
-              onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-              data-testid="sidebar-logout"
-            >
-              <LogOut className="h-5 w-5" />
-              <span>{logoutMutation.isPending ? 'Logging out...' : 'Logout'}</span>
-            </button>
           </div>
         </div>
       </div>

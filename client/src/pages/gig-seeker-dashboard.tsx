@@ -16,6 +16,7 @@ import ZeroBrokeMode from "@/components/ui/zero-broke-mode";
 import SavingsVault from "@/components/ui/savings-vault";
 import BudgetTracker from "@/components/ui/budget-tracker";
 import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
+import DashboardOverview from "@/components/dashboard/dashboard-overview";
 import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, Coins, Video, PhoneCall, Wallet, ArrowUpRight, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
 import { AudioPlayer } from "@/components/ui/audio-recorder";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -50,7 +51,7 @@ const LOCATIONS = [
 ];
 
 export default function GigSeekerDashboard() {
-  const [activeTab, setActiveTab] = useState("browse");
+  const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -217,6 +218,10 @@ export default function GigSeekerDashboard() {
       <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} userType="seeker" />
       
       <div className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+        {activeTab === "overview" && (
+          <DashboardOverview userType="seeker" user={user} onNavigate={setActiveTab} />
+        )}
+
         {activeTab === "browse" && (
           <div>
           {/* Wallet Section */}

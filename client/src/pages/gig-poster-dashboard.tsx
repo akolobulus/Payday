@@ -19,6 +19,7 @@ import ZeroBrokeMode from "@/components/ui/zero-broke-mode";
 import SavingsVault from "@/components/ui/savings-vault";
 import BudgetTracker from "@/components/ui/budget-tracker";
 import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
+import DashboardOverview from "@/components/dashboard/dashboard-overview";
 import { Plus, Briefcase, Users, TrendingUp, Coins, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { AudioRecorder } from "@/components/ui/audio-recorder";
 import { GigApplicationsDialog } from "@/components/ui/gig-applications-dialog";
@@ -38,7 +39,7 @@ const gigFormSchema = insertGigSchema.extend({
 type GigFormData = z.infer<typeof gigFormSchema>;
 
 export default function GigPosterDashboard() {
-  const [activeTab, setActiveTab] = useState("my-gigs");
+  const [activeTab, setActiveTab] = useState("overview");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [, setLocation] = useLocation();
@@ -239,6 +240,10 @@ export default function GigPosterDashboard() {
       <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} userType="poster" />
       
       <div className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+        {activeTab === "overview" && (
+          <DashboardOverview userType="poster" user={user} onNavigate={setActiveTab} />
+        )}
+
         {activeTab === "my-gigs" && (
           <div>
           {/* Wallet Section */}
