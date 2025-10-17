@@ -16,7 +16,8 @@ import {
   LogOut,
   Home,
   ChevronDown,
-  Package
+  Package,
+  Wallet
 } from "lucide-react";
 import {
   Tooltip,
@@ -35,25 +36,25 @@ interface DashboardSidebarProps {
 }
 
 const seekerMenuItems = [
-  { id: 'overview', label: 'Apps', icon: Grid, tooltip: 'View all applications' },
-  { id: 'browse', label: 'Buyer', icon: ShoppingBag, tooltip: 'Purchase AI agents' },
-  { id: 'agent-store', label: 'Agent Store', icon: Store, tooltip: 'Browse agent marketplace' },
-  { id: 'projects', label: 'Projects', icon: FolderKanban, tooltip: 'Manage your projects' },
-  { id: 'chat', label: 'Conversations', icon: MessageSquare, tooltip: 'View conversations' },
-  { id: 'schedule', label: 'Schedule', icon: Calendar, tooltip: 'View your schedule' },
-  { id: 'learning', label: 'Learning', icon: GraduationCap, tooltip: 'Learning resources' },
-  { id: 'saved', label: 'Saved', icon: Bookmark, tooltip: 'Saved items' },
+  { id: 'overview', label: 'Overview', icon: Grid, tooltip: 'Dashboard overview' },
+  { id: 'browse', label: 'Browse Gigs', icon: ShoppingBag, tooltip: 'Find available gigs' },
+  { id: 'applications', label: 'My Applications', icon: FolderKanban, tooltip: 'View your applications' },
+  { id: 'recommendations', label: 'Recommendations', icon: Store, tooltip: 'AI-powered gig recommendations' },
+  { id: 'profile', label: 'Profile', icon: MessageSquare, tooltip: 'Your profile' },
+  { id: 'financial', label: 'Wallet', icon: Wallet, tooltip: 'Manage your wallet' },
+  { id: 'chat', label: 'Messages', icon: Calendar, tooltip: 'Chat with posters' },
+  { id: 'analytics', label: 'Analytics', icon: Bookmark, tooltip: 'Your performance' },
 ];
 
 const posterMenuItems = [
-  { id: 'overview', label: 'Apps', icon: Grid, tooltip: 'View all applications' },
-  { id: 'seller', label: 'Seller', icon: Package, tooltip: 'Sell AI agents' },
-  { id: 'agent-store', label: 'Agent Store', icon: Store, tooltip: 'Browse agent marketplace' },
-  { id: 'projects', label: 'Projects', icon: FolderKanban, tooltip: 'Manage your projects' },
-  { id: 'chat', label: 'Conversations', icon: MessageSquare, tooltip: 'View conversations' },
-  { id: 'schedule', label: 'Schedule', icon: Calendar, tooltip: 'View your schedule' },
-  { id: 'learning', label: 'Learning', icon: GraduationCap, tooltip: 'Learning resources' },
-  { id: 'saved', label: 'Saved', icon: Bookmark, tooltip: 'Saved items' },
+  { id: 'overview', label: 'Overview', icon: Grid, tooltip: 'Dashboard overview' },
+  { id: 'my-gigs', label: 'My Gigs', icon: Package, tooltip: 'View and manage your gigs' },
+  { id: 'analytics', label: 'Analytics', icon: Store, tooltip: 'View analytics' },
+  { id: 'profile', label: 'Profile', icon: FolderKanban, tooltip: 'Your profile' },
+  { id: 'financial', label: 'Wallet', icon: Wallet, tooltip: 'Manage your wallet' },
+  { id: 'chat', label: 'Messages', icon: MessageSquare, tooltip: 'Chat with seekers' },
+  { id: 'reviews', label: 'Reviews', icon: Calendar, tooltip: 'Gig reviews' },
+  { id: 'gamification', label: 'Achievements', icon: Bookmark, tooltip: 'View achievements' },
 ];
 
 export default function DashboardSidebar({ activeTab, onTabChange, userType }: DashboardSidebarProps) {
@@ -84,7 +85,7 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
       {/* Mobile Header with Menu Toggle */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between p-4">
-          <span className="font-bold text-xl text-primary">Autonoms</span>
+          <span className="font-bold text-xl text-primary">Payday</span>
           <Button
             variant="ghost"
             size="sm"
@@ -109,7 +110,7 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
         <div className="flex flex-col h-full">
           {/* Logo - Desktop */}
           <div className="hidden lg:flex items-center p-6 border-b border-gray-200">
-            <span className="font-bold text-2xl text-primary">Autonoms</span>
+            <span className="font-bold text-2xl text-primary">Payday</span>
           </div>
 
           {/* Navigation Menu */}

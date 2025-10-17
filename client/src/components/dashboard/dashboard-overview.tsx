@@ -31,8 +31,8 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
 
   const seekerLinks: QuickLink[] = [
     {
-      title: 'Sell Agent',
-      description: 'Create and sell AI agents',
+      title: 'Find Quick Gigs',
+      description: 'Browse available gigs and earn today',
       icons: [
         <div key="icon1" className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center">
           <Package className="w-4 h-4 text-orange-600" />
@@ -44,8 +44,8 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
       onClick: () => onNavigate('browse')
     },
     {
-      title: 'Manage Store',
-      description: 'Manage and customize your store whenever you want',
+      title: 'My Applications',
+      description: 'Track your gig applications and status',
       icons: [
         <div key="icon1" className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
           <Store className="w-4 h-4 text-green-600" />
@@ -55,11 +55,11 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
         </div>,
       ],
       highlight: true,
-      onClick: () => onNavigate('agent-store')
+      onClick: () => onNavigate('applications')
     },
     {
-      title: 'Browse Agents',
-      description: 'Discover AI agents',
+      title: 'AI Recommendations',
+      description: 'Get personalized gig suggestions',
       icons: [
         <div key="icon1" className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center">
           <Bot className="w-4 h-4 text-blue-600" />
@@ -68,21 +68,21 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
           <Users className="w-4 h-4 text-purple-600" />
         </div>,
       ],
-      onClick: () => onNavigate('agent-store')
+      onClick: () => onNavigate('recommendations')
     },
     {
-      title: 'My Projects',
-      description: 'View and manage projects',
+      title: 'My Wallet',
+      description: 'View earnings and withdraw funds',
       icons: [
         <div key="icon1" className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center">
           <Folder className="w-4 h-4 text-orange-600" />
         </div>,
       ],
-      onClick: () => onNavigate('projects')
+      onClick: () => onNavigate('financial')
     },
     {
-      title: 'Learn',
-      description: 'Educational resources',
+      title: 'Analytics',
+      description: 'Track your performance',
       icons: [
         <div key="icon1" className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
           <BookOpen className="w-4 h-4 text-green-600" />
@@ -91,14 +91,14 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
           <Lightbulb className="w-4 h-4 text-blue-600" />
         </div>,
       ],
-      onClick: () => onNavigate('learning')
+      onClick: () => onNavigate('analytics')
     }
   ];
 
   const posterLinks: QuickLink[] = [
     {
-      title: 'Sell Agent',
-      description: 'Create and sell AI agents',
+      title: 'My Gigs',
+      description: 'View and manage your posted gigs',
       icons: [
         <div key="icon1" className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center">
           <Package className="w-4 h-4 text-orange-600" />
@@ -107,11 +107,11 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
           <DollarSign className="w-4 h-4 text-green-600" />
         </div>,
       ],
-      onClick: () => onNavigate('seller')
+      onClick: () => onNavigate('my-gigs')
     },
     {
-      title: 'Manage Store',
-      description: 'Manage and customize your store whenever you want',
+      title: 'View Applicants',
+      description: 'Review applications for your gigs',
       icons: [
         <div key="icon1" className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
           <Store className="w-4 h-4 text-green-600" />
@@ -121,11 +121,11 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
         </div>,
       ],
       highlight: true,
-      onClick: () => onNavigate('agent-store')
+      onClick: () => onNavigate('my-gigs')
     },
     {
-      title: 'Browse Agents',
-      description: 'Discover AI agents',
+      title: 'Analytics',
+      description: 'View your performance metrics',
       icons: [
         <div key="icon1" className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center">
           <Bot className="w-4 h-4 text-blue-600" />
@@ -134,21 +134,21 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
           <Users className="w-4 h-4 text-purple-600" />
         </div>,
       ],
-      onClick: () => onNavigate('agent-store')
+      onClick: () => onNavigate('analytics')
     },
     {
-      title: 'My Projects',
-      description: 'View and manage projects',
+      title: 'My Wallet',
+      description: 'Manage funds and transactions',
       icons: [
         <div key="icon1" className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center">
           <Folder className="w-4 h-4 text-orange-600" />
         </div>,
       ],
-      onClick: () => onNavigate('projects')
+      onClick: () => onNavigate('financial')
     },
     {
-      title: 'Learn',
-      description: 'Educational resources',
+      title: 'Reviews',
+      description: 'View gig reviews and ratings',
       icons: [
         <div key="icon1" className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
           <BookOpen className="w-4 h-4 text-green-600" />
@@ -157,32 +157,32 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
           <Lightbulb className="w-4 h-4 text-blue-600" />
         </div>,
       ],
-      onClick: () => onNavigate('learning')
+      onClick: () => onNavigate('reviews')
     }
   ];
 
   const links = userType === 'seeker' ? seekerLinks : posterLinks;
 
-  const autonomsStats = [
+  const paydayStats = [
     {
-      label: 'Total Agents Deployed',
+      label: userType === 'seeker' ? 'Total Gigs Completed' : 'Total Gigs Posted',
       value: 0,
       change: '39%',
       icon: <TrendingUp className="w-4 h-4 text-primary" />,
       changeColor: 'text-green-600'
     },
     {
-      label: 'Total Hours Saved',
-      value: 0,
-      change: '10%',
-      icon: <Clock className="w-4 h-4 text-primary" />,
-      changeColor: 'text-green-600'
-    },
-    {
-      label: 'Total Cost Saved',
+      label: userType === 'seeker' ? 'Total Earnings' : 'Total Spent',
       value: '₦0.0',
       change: '10%',
       icon: <DollarSign className="w-4 h-4 text-primary" />,
+      changeColor: 'text-green-600'
+    },
+    {
+      label: userType === 'seeker' ? 'Active Applications' : 'Active Gigs',
+      value: 0,
+      change: '10%',
+      icon: <Clock className="w-4 h-4 text-primary" />,
       changeColor: 'text-green-600'
     }
   ];
@@ -197,7 +197,7 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
             <span className="text-gray-900">{user?.firstName || 'User'}!</span>
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Welcome to your AI Agent marketplace dashboard
+            Welcome to your Payday dashboard - Get paid today, not tomorrow
           </p>
         </div>
 
@@ -224,10 +224,10 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
           </div>
         </div>
 
-        {/* Stats Section and Agent Summary */}
+        {/* Stats Section and Gig Summary */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {/* Stats Cards */}
-          {autonomsStats.map((stat, index) => (
+          {paydayStats.map((stat, index) => (
             <Card key={index} data-testid={`stat-${index}`} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-center gap-2 mb-3">
@@ -248,12 +248,12 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
           ))}
         </div>
 
-        {/* Agent Summary Section */}
+        {/* Gig Summary Section */}
         <Card className="mb-6">
           <CardContent className="p-4 sm:p-6">
-            <h3 className="font-semibold text-gray-900 mb-4 text-sm sm:text-base">Agent Summary</h3>
+            <h3 className="font-semibold text-gray-900 mb-4 text-sm sm:text-base">Gig Summary</h3>
             <div className="flex items-center justify-center h-32 sm:h-40 text-gray-400">
-              <p className="text-xs sm:text-sm text-center">Agent analytics and summary will appear here</p>
+              <p className="text-xs sm:text-sm text-center">Gig analytics and summary will appear here</p>
             </div>
           </CardContent>
         </Card>

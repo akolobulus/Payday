@@ -1,18 +1,19 @@
-# Autonoms - AI Agent Marketplace Platform
+# Payday - Instant Gigs Platform for Nigerian Youth
 
 ## Overview
 
-Autonoms is a full-stack web application designed as an AI Agent marketplace platform. The platform features a modern, professional design with a teal/cyan color scheme inspired by the Autonoms brand. It provides dashboards for both buyers and sellers with comprehensive navigation, quick actions, and analytics.
+Payday is a full-stack web application designed to connect Nigerian youth with instant-paying gigs. The platform serves as a marketplace where gig seekers (students, fresh graduates) can find quick work opportunities, while gig posters (businesses, individuals) can find reliable help for their tasks. The core value proposition is instant payment upon gig completion, addressing the financial needs of young Nigerians who need money "today, not tomorrow."
 
 ## Recent Changes (October 17, 2025)
 
-- **Rebranded from Payday to Autonoms** with new teal/cyan color scheme (hsl(174, 72%, 56%))
+- **Adopted modern dashboard layout** inspired by contemporary marketplace designs while maintaining Payday branding
+- **Kept Payday colors** - Blue (#0029F7) and Yellow (#FDF00B) throughout the application
 - **Created new DashboardHeader** component with search bar, wallet display, user avatar initials, and notification bell
-- **Updated DashboardSidebar** with Autonoms menu items: Apps, Seller/Buyer, Agent Store, Projects, Conversations, Schedule, Learning, Saved
-- **Redesigned DashboardOverview** with personalized greeting, Quick Links section (Sell Agent, Manage Store, Browse Agents, My Projects, Learn), stats cards (Total Agents Deployed, Total Hours Saved, Total Cost Saved), and Agent Summary
+- **Updated DashboardSidebar** with improved Payday menu items: Overview, Browse Gigs, My Applications, Active Gigs, Profile, Wallet, Schedule, Saved Gigs
+- **Redesigned DashboardOverview** with personalized greeting, Quick Links section (Find Quick Gigs, My Applications, Active Gigs, My Wallet, Saved Gigs), dynamic stats cards (Total Gigs Completed/Posted, Total Earnings/Spent, Active Applications/Gigs)
 - **Added hover tooltips** to all interactive elements for better UX
 - **Implemented mobile-first responsive design** with proper breakpoints for all dashboard components
-- **Fixed navigation** to properly route all quick links to existing tabs
+- **Updated content** to reflect Payday gig marketplace context (not AI agents)
 
 ## User Preferences
 
