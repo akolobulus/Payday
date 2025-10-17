@@ -719,6 +719,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all applications for current seeker
+  app.get("/api/applications/my-applications", async (req, res) => {
+    try {
+      if (!currentUser) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      if (currentUser.userType !== 'seeker') {
+        return res.status(403).json({ message: "Only gig seekers can view their applications" });
+      }
+
+      const applications = await storage.getApplicationsBySeeker(currentUser.id);
+      
+      // Enrich applications with gig details
+      const enrichedApplications = await Promise.all(
+        applications.map(async (app) => {
+          const gig = await storage.getGig(app.gigId);
+          return {
+            ...app,
+            gig
+          };
+        })
+      );
+      
+      res.json(enrichedApplications);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Audio upload endpoint (mock implementation for in-memory storage)
   app.post("/api/uploads/audio", async (req, res) => {
     try {

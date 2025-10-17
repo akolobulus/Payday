@@ -23,7 +23,7 @@ import { AudioPlayer } from "@/components/ui/audio-recorder";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import type { User, Gig } from "@shared/schema";
+import type { User, Gig, GigApplication } from "@shared/schema";
 
 interface JobMatchResult {
   score: number;
@@ -74,6 +74,12 @@ export default function GigSeekerDashboard() {
     queryKey: ['/api/gigs/available']
   });
 
+  // Get all applications with comprehensive status history
+  const { data: myApplications } = useQuery<Array<GigApplication & { gig: Gig }>>({
+    queryKey: ['/api/applications/my-applications']
+  });
+
+  // Keep existing assigned gigs query for active work
   const { data: myGigs } = useQuery<Gig[]>({
     queryKey: ['/api/gigs/my-applications']
   });
@@ -92,6 +98,7 @@ export default function GigSeekerDashboard() {
     mutationFn: (gigId: string) => apiRequest('POST', `/api/gigs/${gigId}/apply`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/gigs/available'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/applications/my-applications'] });
       queryClient.invalidateQueries({ queryKey: ['/api/gigs/my-applications'] });
       toast({
         title: "Application submitted!",
@@ -566,7 +573,7 @@ export default function GigSeekerDashboard() {
               <CardHeader>
                 <CardTitle className="text-2xl">My Applications</CardTitle>
                 <CardDescription className="text-base">
-                  Track your gig applications and their status
+                  Track all your gig applications and their status (pending, approved, rejected, completed)
                 </CardDescription>
               </CardHeader>
             </Card>
