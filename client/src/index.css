@@ -9,34 +9,34 @@
   --card-foreground: hsl(210, 25%, 7.8431%);
   --popover: hsl(0, 0%, 100%);
   --popover-foreground: hsl(210, 25%, 7.8431%);
-  --primary: hsl(222.5, 100%, 48.43%);
+  --primary: hsl(174, 72%, 56%);
   --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(210, 25%, 7.8431%);
   --secondary-foreground: hsl(0, 0%, 100%);
   --muted: hsl(240, 1.9608%, 90%);
   --muted-foreground: hsl(210, 25%, 7.8431%);
-  --accent: hsl(211.5789, 51.3514%, 92.7451%);
-  --accent-foreground: hsl(222.5, 100%, 48.43%);
+  --accent: hsl(174, 72%, 95%);
+  --accent-foreground: hsl(174, 72%, 36%);
   --destructive: hsl(356.3033, 90.5579%, 54.3137%);
   --destructive-foreground: hsl(0, 0%, 100%);
   --border: hsl(201.4286, 30.4348%, 90.9804%);
   --input: hsl(200, 23.0769%, 97.4510%);
-  --ring: hsl(222.5, 100%, 48.43%);
-  --chart-1: hsl(222.5, 100%, 48.43%);
+  --ring: hsl(174, 72%, 56%);
+  --chart-1: hsl(174, 72%, 56%);
   --chart-2: hsl(159.7826, 100%, 36.0784%);
   --chart-3: hsl(42.0290, 92.8251%, 56.2745%);
   --chart-4: hsl(147.1429, 78.5047%, 41.9608%);
   --chart-5: hsl(341.4894, 75.2000%, 50.9804%);
   --sidebar: hsl(180, 6.6667%, 97.0588%);
   --sidebar-foreground: hsl(210, 25%, 7.8431%);
-  --sidebar-primary: hsl(222.5, 100%, 48.43%);
+  --sidebar-primary: hsl(174, 72%, 56%);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(211.5789, 51.3514%, 92.7451%);
-  --sidebar-accent-foreground: hsl(222.5, 100%, 48.43%);
+  --sidebar-accent: hsl(174, 72%, 95%);
+  --sidebar-accent-foreground: hsl(174, 72%, 36%);
   --sidebar-border: hsl(205.0000, 25.0000%, 90.5882%);
-  --sidebar-ring: hsl(222.5, 100%, 48.43%);
-  --payday-blue: hsl(222.5, 100%, 48.43%);
-  --payday-yellow: hsl(54.7, 96.67%, 52.35%);
+  --sidebar-ring: hsl(174, 72%, 56%);
+  --autonoms-teal: hsl(174, 72%, 56%);
+  --autonoms-accent: hsl(210, 40%, 96%);
   --dark-gray: hsl(220, 26.3%, 18%);
   --font-sans: Inter, sans-serif;
   --font-serif: Georgia, serif;
@@ -51,29 +51,29 @@
   --card-foreground: hsl(0, 0%, 85.0980%);
   --popover: hsl(0, 0%, 0%);
   --popover-foreground: hsl(200, 6.6667%, 91.1765%);
-  --primary: hsl(222.5, 100%, 48.43%);
+  --primary: hsl(174, 72%, 56%);
   --primary-foreground: hsl(0, 0%, 100%);
   --secondary: hsl(195.0000, 15.3846%, 94.9020%);
   --secondary-foreground: hsl(210, 25%, 7.8431%);
   --muted: hsl(0, 0%, 9.4118%);
   --muted-foreground: hsl(210, 3.3898%, 46.2745%);
-  --accent: hsl(205.7143, 70%, 7.8431%);
-  --accent-foreground: hsl(222.5, 100%, 48.43%);
+  --accent: hsl(174, 72%, 20%);
+  --accent-foreground: hsl(174, 72%, 56%);
   --destructive: hsl(356.3033, 90.5579%, 54.3137%);
   --destructive-foreground: hsl(0, 0%, 100%);
   --border: hsl(210, 5.2632%, 14.9020%);
   --input: hsl(207.6923, 27.6596%, 18.4314%);
-  --ring: hsl(222.5, 100%, 48.43%);
+  --ring: hsl(174, 72%, 56%);
   --sidebar: hsl(228, 9.8039%, 10%);
   --sidebar-foreground: hsl(0, 0%, 85.0980%);
-  --sidebar-primary: hsl(222.5, 100%, 48.43%);
+  --sidebar-primary: hsl(174, 72%, 56%);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(205.7143, 70%, 7.8431%);
-  --sidebar-accent-foreground: hsl(222.5, 100%, 48.43%);
+  --sidebar-accent: hsl(174, 72%, 20%);
+  --sidebar-accent-foreground: hsl(174, 72%, 56%);
   --sidebar-border: hsl(205.7143, 15.7895%, 26.0784%);
-  --sidebar-ring: hsl(222.5, 100%, 48.43%);
-  --payday-blue: hsl(222.5, 100%, 48.43%);
-  --payday-yellow: hsl(54.7, 96.67%, 52.35%);
+  --sidebar-ring: hsl(174, 72%, 56%);
+  --autonoms-teal: hsl(174, 72%, 56%);
+  --autonoms-accent: hsl(210, 40%, 96%);
   --dark-gray: hsl(220, 26.3%, 18%);
 }
 
@@ -98,11 +98,11 @@
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, var(--payday-blue) 0%, hsl(232, 74%, 54%) 100%);
+  background: linear-gradient(135deg, var(--autonoms-teal) 0%, hsl(174, 72%, 46%) 100%);
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, var(--payday-blue) 0%, hsl(232, 74%, 54%) 100%);
+  background: linear-gradient(135deg, var(--autonoms-teal) 0%, hsl(174, 72%, 46%) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

@@ -15,8 +15,15 @@ import {
   X,
   LogOut,
   Home,
-  ChevronDown
+  ChevronDown,
+  Package
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -28,25 +35,25 @@ interface DashboardSidebarProps {
 }
 
 const seekerMenuItems = [
-  { id: 'overview', label: 'Overview', icon: Grid },
-  { id: 'browse', label: 'Browse Gigs', icon: ShoppingBag },
-  { id: 'my-gigs', label: 'My Gigs', icon: Store },
-  { id: 'projects', label: 'Projects', icon: FolderKanban },
-  { id: 'chat', label: 'Conversations', icon: MessageSquare },
-  { id: 'schedule', label: 'Schedule', icon: Calendar },
-  { id: 'learning', label: 'Learning', icon: GraduationCap },
-  { id: 'saved', label: 'Saved', icon: Bookmark },
+  { id: 'overview', label: 'Apps', icon: Grid, tooltip: 'View all applications' },
+  { id: 'browse', label: 'Buyer', icon: ShoppingBag, tooltip: 'Purchase AI agents' },
+  { id: 'agent-store', label: 'Agent Store', icon: Store, tooltip: 'Browse agent marketplace' },
+  { id: 'projects', label: 'Projects', icon: FolderKanban, tooltip: 'Manage your projects' },
+  { id: 'chat', label: 'Conversations', icon: MessageSquare, tooltip: 'View conversations' },
+  { id: 'schedule', label: 'Schedule', icon: Calendar, tooltip: 'View your schedule' },
+  { id: 'learning', label: 'Learning', icon: GraduationCap, tooltip: 'Learning resources' },
+  { id: 'saved', label: 'Saved', icon: Bookmark, tooltip: 'Saved items' },
 ];
 
 const posterMenuItems = [
-  { id: 'overview', label: 'Overview', icon: Grid },
-  { id: 'post-gig', label: 'Post Gig', icon: ShoppingBag },
-  { id: 'manage-gigs', label: 'Manage Gigs', icon: Store },
-  { id: 'projects', label: 'Projects', icon: FolderKanban },
-  { id: 'chat', label: 'Conversations', icon: MessageSquare },
-  { id: 'schedule', label: 'Schedule', icon: Calendar },
-  { id: 'learning', label: 'Learning', icon: GraduationCap },
-  { id: 'saved', label: 'Saved', icon: Bookmark },
+  { id: 'overview', label: 'Apps', icon: Grid, tooltip: 'View all applications' },
+  { id: 'seller', label: 'Seller', icon: Package, tooltip: 'Sell AI agents' },
+  { id: 'agent-store', label: 'Agent Store', icon: Store, tooltip: 'Browse agent marketplace' },
+  { id: 'projects', label: 'Projects', icon: FolderKanban, tooltip: 'Manage your projects' },
+  { id: 'chat', label: 'Conversations', icon: MessageSquare, tooltip: 'View conversations' },
+  { id: 'schedule', label: 'Schedule', icon: Calendar, tooltip: 'View your schedule' },
+  { id: 'learning', label: 'Learning', icon: GraduationCap, tooltip: 'Learning resources' },
+  { id: 'saved', label: 'Saved', icon: Bookmark, tooltip: 'Saved items' },
 ];
 
 export default function DashboardSidebar({ activeTab, onTabChange, userType }: DashboardSidebarProps) {
@@ -77,7 +84,7 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
       {/* Mobile Header with Menu Toggle */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between p-4">
-          <span className="font-bold text-xl text-payday-blue">Payday</span>
+          <span className="font-bold text-xl text-primary">Autonoms</span>
           <Button
             variant="ghost"
             size="sm"
@@ -102,7 +109,7 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
         <div className="flex flex-col h-full">
           {/* Logo - Desktop */}
           <div className="hidden lg:flex items-center p-6 border-b border-gray-200">
-            <span className="font-bold text-2xl text-payday-blue">Payday</span>
+            <span className="font-bold text-2xl text-primary">Autonoms</span>
           </div>
 
           {/* Navigation Menu */}
@@ -113,22 +120,30 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
                 const isActive = activeTab === item.id;
                 
                 return (
-                  <button
-                    key={item.id}
-                    onClick={() => handleTabClick(item.id)}
-                    data-testid={`sidebar-${item.id}`}
-                    className={`
-                      w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                      transition-colors duration-150
-                      ${isActive 
-                        ? 'bg-gray-100 text-gray-900' 
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      }
-                    `}
-                  >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </button>
+                  <TooltipProvider key={item.id}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handleTabClick(item.id)}
+                          data-testid={`sidebar-${item.id}`}
+                          className={`
+                            w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+                            transition-colors duration-150
+                            ${isActive 
+                              ? 'bg-primary/10 text-primary' 
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                            }
+                          `}
+                        >
+                          <Icon className="h-5 w-5 flex-shrink-0" />
+                          <span className="truncate">{item.label}</span>
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">
+                        <p>{item.tooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 );
               })}
             </div>
@@ -136,25 +151,24 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
 
           {/* Footer Actions */}
           <div className="border-t border-gray-200 p-4 space-y-2">
-            <button
-              onClick={() => onTabChange('settings')}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              data-testid="sidebar-settings"
-            >
-              <Settings className="h-5 w-5" />
-              <span>Settings</span>
-            </button>
-            <Link href="/">
-              <button
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
-                  text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                data-testid="sidebar-home"
-              >
-                <Home className="h-5 w-5" />
-                <span>Home</span>
-              </button>
-            </Link>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => onTabChange('settings')}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+                      text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    data-testid="sidebar-settings"
+                  >
+                    <Settings className="h-5 w-5" />
+                    <span>Settings</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Application settings</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </div>

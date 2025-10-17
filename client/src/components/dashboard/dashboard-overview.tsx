@@ -1,4 +1,4 @@
-import { Store, Users, Folder, BookOpen, TrendingUp, Clock, DollarSign, Trophy } from "lucide-react";
+import { Store, Users, Folder, BookOpen, TrendingUp, Clock, DollarSign, Trophy, Package, Bot, Lightbulb } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import type { User } from "@shared/schema";
@@ -6,7 +6,7 @@ import type { User } from "@shared/schema";
 interface QuickLink {
   title: string;
   description: string;
-  icon: React.ReactNode;
+  icons: React.ReactNode[];
   highlight?: boolean;
   onClick: () => void;
 }
@@ -31,137 +31,161 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
 
   const seekerLinks: QuickLink[] = [
     {
-      title: 'Browse Gigs',
-      description: 'Find and apply to available gigs in your area',
-      icon: <div className="flex gap-2 items-center">
-        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-          <Store className="w-5 h-5 text-blue-600" />
-        </div>
-      </div>,
+      title: 'Sell Agent',
+      description: 'Create and sell AI agents',
+      icons: [
+        <div key="icon1" className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center">
+          <Package className="w-4 h-4 text-orange-600" />
+        </div>,
+        <div key="icon2" className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center -ml-2">
+          <DollarSign className="w-4 h-4 text-green-600" />
+        </div>,
+      ],
       onClick: () => onNavigate('browse')
     },
     {
-      title: 'My Gigs',
-      description: 'Track your ongoing and completed gigs',
-      icon: <div className="flex gap-2 items-center">
-        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-          <Trophy className="w-5 h-5 text-green-600" />
-        </div>
-      </div>,
+      title: 'Manage Store',
+      description: 'Manage and customize your store whenever you want',
+      icons: [
+        <div key="icon1" className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
+          <Store className="w-4 h-4 text-green-600" />
+        </div>,
+        <div key="icon2" className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center -ml-2">
+          <Trophy className="w-4 h-4 text-purple-600" />
+        </div>,
+      ],
       highlight: true,
-      onClick: () => onNavigate('my-gigs')
+      onClick: () => onNavigate('agent-store')
+    },
+    {
+      title: 'Browse Agents',
+      description: 'Discover AI agents',
+      icons: [
+        <div key="icon1" className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center">
+          <Bot className="w-4 h-4 text-blue-600" />
+        </div>,
+        <div key="icon2" className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center -ml-2">
+          <Users className="w-4 h-4 text-purple-600" />
+        </div>,
+      ],
+      onClick: () => onNavigate('agent-store')
     },
     {
       title: 'My Projects',
-      description: 'View all your projects and submissions',
-      icon: <div className="flex gap-2 items-center">
-        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-          <Folder className="w-5 h-5 text-purple-600" />
-        </div>
-      </div>,
+      description: 'View and manage projects',
+      icons: [
+        <div key="icon1" className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center">
+          <Folder className="w-4 h-4 text-orange-600" />
+        </div>,
+      ],
       onClick: () => onNavigate('projects')
     },
     {
-      title: 'Learning',
-      description: 'Take courses to improve your skills',
-      icon: <div className="flex gap-2 items-center">
-        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-          <BookOpen className="w-5 h-5 text-orange-600" />
-        </div>
-      </div>,
+      title: 'Learn',
+      description: 'Educational resources',
+      icons: [
+        <div key="icon1" className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
+          <BookOpen className="w-4 h-4 text-green-600" />
+        </div>,
+        <div key="icon2" className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center -ml-2">
+          <Lightbulb className="w-4 h-4 text-blue-600" />
+        </div>,
+      ],
       onClick: () => onNavigate('learning')
     }
   ];
 
   const posterLinks: QuickLink[] = [
     {
-      title: 'Post Gig',
-      description: 'Create a new gig posting',
-      icon: <div className="flex gap-2 items-center">
-        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-          <Store className="w-5 h-5 text-blue-600" />
-        </div>
-      </div>,
-      onClick: () => onNavigate('post-gig')
+      title: 'Sell Agent',
+      description: 'Create and sell AI agents',
+      icons: [
+        <div key="icon1" className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center">
+          <Package className="w-4 h-4 text-orange-600" />
+        </div>,
+        <div key="icon2" className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center -ml-2">
+          <DollarSign className="w-4 h-4 text-green-600" />
+        </div>,
+      ],
+      onClick: () => onNavigate('seller')
     },
     {
-      title: 'Manage Gigs',
-      description: 'Monitor and manage all your gig postings',
-      icon: <div className="flex gap-2 items-center">
-        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-          <Trophy className="w-5 h-5 text-green-600" />
-        </div>
-      </div>,
+      title: 'Manage Store',
+      description: 'Manage and customize your store whenever you want',
+      icons: [
+        <div key="icon1" className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
+          <Store className="w-4 h-4 text-green-600" />
+        </div>,
+        <div key="icon2" className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center -ml-2">
+          <Trophy className="w-4 h-4 text-purple-600" />
+        </div>,
+      ],
       highlight: true,
-      onClick: () => onNavigate('manage-gigs')
+      onClick: () => onNavigate('agent-store')
     },
     {
-      title: 'Find Talent',
-      description: 'Browse available gig seekers',
-      icon: <div className="flex gap-2 items-center">
-        <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-          <Users className="w-5 h-5 text-purple-600" />
-        </div>
-      </div>,
+      title: 'Browse Agents',
+      description: 'Discover AI agents',
+      icons: [
+        <div key="icon1" className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center">
+          <Bot className="w-4 h-4 text-blue-600" />
+        </div>,
+        <div key="icon2" className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center -ml-2">
+          <Users className="w-4 h-4 text-purple-600" />
+        </div>,
+      ],
+      onClick: () => onNavigate('agent-store')
+    },
+    {
+      title: 'My Projects',
+      description: 'View and manage projects',
+      icons: [
+        <div key="icon1" className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center">
+          <Folder className="w-4 h-4 text-orange-600" />
+        </div>,
+      ],
       onClick: () => onNavigate('projects')
     },
     {
-      title: 'Learning',
-      description: 'Learn how to maximize your hiring',
-      icon: <div className="flex gap-2 items-center">
-        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-          <BookOpen className="w-5 h-5 text-orange-600" />
-        </div>
-      </div>,
+      title: 'Learn',
+      description: 'Educational resources',
+      icons: [
+        <div key="icon1" className="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center">
+          <BookOpen className="w-4 h-4 text-green-600" />
+        </div>,
+        <div key="icon2" className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center -ml-2">
+          <Lightbulb className="w-4 h-4 text-blue-600" />
+        </div>,
+      ],
       onClick: () => onNavigate('learning')
     }
   ];
 
   const links = userType === 'seeker' ? seekerLinks : posterLinks;
 
-  const seekerStats = [
+  const autonomsStats = [
     {
-      label: 'Total Gigs Completed',
-      value: user?.totalGigsCompleted || 0,
-      change: '+30%',
-      icon: <Trophy className="w-5 h-5 text-blue-500" />
+      label: 'Total Agents Deployed',
+      value: 0,
+      change: '39%',
+      icon: <TrendingUp className="w-4 h-4 text-primary" />,
+      changeColor: 'text-green-600'
     },
     {
-      label: 'Hours Worked',
-      value: (user?.totalGigsCompleted || 0) * 3.5,
-      change: '+10%',
-      icon: <Clock className="w-5 h-5 text-green-500" />
+      label: 'Total Hours Saved',
+      value: 0,
+      change: '10%',
+      icon: <Clock className="w-4 h-4 text-primary" />,
+      changeColor: 'text-green-600'
     },
     {
-      label: 'Total Earnings',
-      value: `₦${(stats?.totalEarnings / 100 || 0).toLocaleString()}`,
-      change: '+15%',
-      icon: <DollarSign className="w-5 h-5 text-orange-500" />
+      label: 'Total Cost Saved',
+      value: '₦0.0',
+      change: '10%',
+      icon: <DollarSign className="w-4 h-4 text-primary" />,
+      changeColor: 'text-green-600'
     }
   ];
-
-  const posterStats = [
-    {
-      label: 'Total Gigs Posted',
-      value: stats?.totalGigs || 0,
-      change: '+20%',
-      icon: <Trophy className="w-5 h-5 text-blue-500" />
-    },
-    {
-      label: 'Active Gigs',
-      value: stats?.activeGigs || 0,
-      change: '+5%',
-      icon: <Clock className="w-5 h-5 text-green-500" />
-    },
-    {
-      label: 'Total Spent',
-      value: `₦${(stats?.totalSpent / 100 || 0).toLocaleString()}`,
-      change: '+12%',
-      icon: <DollarSign className="w-5 h-5 text-orange-500" />
-    }
-  ];
-
-  const displayStats = userType === 'seeker' ? seekerStats : posterStats;
 
   return (
     <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
@@ -169,29 +193,29 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 break-words">
-            <span className="text-gray-500">{getGreeting()}</span>{' '}
-            <span className="text-payday-blue">{user?.firstName || 'User'}!</span>
+            <span className="text-primary">{getGreeting()}</span>{' '}
+            <span className="text-gray-900">{user?.firstName || 'User'}!</span>
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
-            Welcome to your {userType === 'seeker' ? 'gig seeker' : 'gig poster'} marketplace dashboard
+            Welcome to your AI Agent marketplace dashboard
           </p>
         </div>
 
         {/* Quick Links Section */}
         <div className="mb-8 sm:mb-12">
           <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Quick Links</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
             {links.map((link, index) => (
               <Card
                 key={index}
                 className={`cursor-pointer transition-all hover:shadow-lg ${
-                  link.highlight ? 'border-2 border-payday-blue' : ''
+                  link.highlight ? 'border-2 border-primary' : ''
                 }`}
                 onClick={link.onClick}
                 data-testid={`quick-link-${index}`}
               >
                 <CardContent className="p-4 sm:p-6">
-                  <div className="mb-3 sm:mb-4">{link.icon}</div>
+                  <div className="flex gap-1 mb-3 sm:mb-4">{link.icons}</div>
                   <h3 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">{link.title}</h3>
                   <p className="text-xs sm:text-sm text-gray-600">{link.description}</p>
                 </CardContent>
@@ -200,35 +224,36 @@ export default function DashboardOverview({ userType, user, onNavigate }: Dashbo
           </div>
         </div>
 
-        {/* Stats Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
-          {displayStats.map((stat, index) => (
-            <Card key={index} data-testid={`stat-${index}`}>
+        {/* Stats Section and Agent Summary */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {/* Stats Cards */}
+          {autonomsStats.map((stat, index) => (
+            <Card key={index} data-testid={`stat-${index}`} className="hover:shadow-md transition-shadow">
               <CardContent className="p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    {stat.icon}
-                    <span className="text-xs sm:text-sm text-gray-600 truncate">{stat.label}</span>
-                  </div>
+                <div className="flex items-center gap-2 mb-3">
+                  {stat.icon}
+                  <span className="text-xs sm:text-sm text-gray-600 font-medium">{stat.label}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xl sm:text-2xl font-bold truncate">{stat.value}</span>
-                  <span className="text-xs sm:text-sm text-green-600 flex items-center gap-1 whitespace-nowrap">
-                    <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
-                    {stat.change}
-                  </span>
+                <div className="flex items-end justify-between">
+                  <span className="text-2xl sm:text-3xl font-bold text-gray-900">{stat.value}</span>
+                  <div className="flex items-center gap-1">
+                    <span className={`text-sm font-semibold ${stat.changeColor}`}>
+                      {stat.change}
+                    </span>
+                    <TrendingUp className={`w-3 h-3 ${stat.changeColor}`} />
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
 
-        {/* Agent Summary - Placeholder */}
-        <Card>
+        {/* Agent Summary Section */}
+        <Card className="mb-6">
           <CardContent className="p-4 sm:p-6">
-            <h3 className="font-semibold text-gray-900 mb-4 text-sm sm:text-base">Activity Summary</h3>
-            <div className="flex items-center justify-center h-24 sm:h-32 text-gray-400">
-              <p className="text-xs sm:text-sm text-center">Recent activity will appear here</p>
+            <h3 className="font-semibold text-gray-900 mb-4 text-sm sm:text-base">Agent Summary</h3>
+            <div className="flex items-center justify-center h-32 sm:h-40 text-gray-400">
+              <p className="text-xs sm:text-sm text-center">Agent analytics and summary will appear here</p>
             </div>
           </CardContent>
         </Card>

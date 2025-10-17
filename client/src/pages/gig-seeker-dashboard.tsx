@@ -16,6 +16,7 @@ import ZeroBrokeMode from "@/components/ui/zero-broke-mode";
 import SavingsVault from "@/components/ui/savings-vault";
 import BudgetTracker from "@/components/ui/budget-tracker";
 import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
+import DashboardHeader from "@/components/navigation/dashboard-header";
 import DashboardOverview from "@/components/dashboard/dashboard-overview";
 import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, Coins, Video, PhoneCall, Wallet, ArrowUpRight, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
 import { AudioPlayer } from "@/components/ui/audio-recorder";
@@ -213,11 +214,41 @@ export default function GigSeekerDashboard() {
     );
   }
 
+  const getUserInitials = () => {
+    if (!user?.firstName && !user?.lastName) return "U";
+    return `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase();
+  };
+
+  const handleWalletClick = () => {
+    setActiveTab('wallet');
+  };
+
+  const handleProfileClick = () => {
+    setActiveTab('profile');
+  };
+
+  const handleNotificationsClick = () => {
+    toast({
+      title: "Notifications",
+      description: "No new notifications",
+    });
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 flex">
       <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} userType="seeker" />
       
       <div className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+        <DashboardHeader
+          userName={user?.firstName || 'User'}
+          userInitials={getUserInitials()}
+          walletBalance={wallet?.availableBalance ? wallet.availableBalance / 100 : 0}
+          onWalletClick={handleWalletClick}
+          onProfileClick={handleProfileClick}
+          onNotificationsClick={handleNotificationsClick}
+          onSearch={(query) => setSearchQuery(query)}
+        />
+        
         {activeTab === "overview" && (
           <DashboardOverview userType="seeker" user={user} onNavigate={setActiveTab} />
         )}

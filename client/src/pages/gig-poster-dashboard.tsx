@@ -19,6 +19,7 @@ import ZeroBrokeMode from "@/components/ui/zero-broke-mode";
 import SavingsVault from "@/components/ui/savings-vault";
 import BudgetTracker from "@/components/ui/budget-tracker";
 import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
+import DashboardHeader from "@/components/navigation/dashboard-header";
 import DashboardOverview from "@/components/dashboard/dashboard-overview";
 import { Plus, Briefcase, Users, TrendingUp, Coins, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import { AudioRecorder } from "@/components/ui/audio-recorder";
@@ -215,6 +216,26 @@ export default function GigPosterDashboard() {
     currentPage * itemsPerPage
   ) || [];
 
+  const getUserInitials = () => {
+    if (!user?.firstName && !user?.lastName) return "U";
+    return `${user?.firstName?.[0] || ''}${user?.lastName?.[0] || ''}`.toUpperCase();
+  };
+
+  const handleWalletClick = () => {
+    setActiveTab('wallet');
+  };
+
+  const handleProfileClick = () => {
+    setActiveTab('profile');
+  };
+
+  const handleNotificationsClick = () => {
+    toast({
+      title: "Notifications",
+      description: "No new notifications",
+    });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex">
@@ -240,6 +261,15 @@ export default function GigPosterDashboard() {
       <DashboardSidebar activeTab={activeTab} onTabChange={setActiveTab} userType="poster" />
       
       <div className="flex-1 lg:ml-64 pt-16 lg:pt-0">
+        <DashboardHeader
+          userName={user?.firstName || 'User'}
+          userInitials={getUserInitials()}
+          walletBalance={wallet?.availableBalance ? wallet.availableBalance / 100 : 0}
+          onWalletClick={handleWalletClick}
+          onProfileClick={handleProfileClick}
+          onNotificationsClick={handleNotificationsClick}
+        />
+        
         {activeTab === "overview" && (
           <DashboardOverview userType="poster" user={user} onNavigate={setActiveTab} />
         )}
