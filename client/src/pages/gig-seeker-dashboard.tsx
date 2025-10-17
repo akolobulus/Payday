@@ -254,97 +254,53 @@ export default function GigSeekerDashboard() {
         )}
 
         {activeTab === "browse" && (
-          <div>
-          {/* Wallet Section */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-800 border-b border-gray-200 dark:border-gray-700">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div className="flex items-center gap-6">
-                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
-                    <Wallet className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-blue-100 dark:text-blue-200">Available Balance</p>
-                    <p className="text-3xl font-bold text-white" data-testid="wallet-balance">
-                      {formatNaira(wallet?.balance || 0)}
-                    </p>
-                  </div>
-                  <div className="border-l border-blue-400 dark:border-blue-500 pl-6">
-                    <p className="text-sm text-blue-100 dark:text-blue-200">Pending Payment</p>
-                    <p className="text-2xl font-bold text-yellow-300" data-testid="pending-balance">
-                      {formatNaira(wallet?.pendingBalance || 0)}
-                    </p>
-                    <p className="text-xs text-blue-200 dark:text-blue-300">Awaiting completion confirmation</p>
-                  </div>
+          <>
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 py-16">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-8">
+                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4" data-testid="dashboard-title">
+                    Over {availableGigs?.length || 0}+ gigs to apply
+                  </h1>
+                  <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                    Your Next Big Opportunity Starts Right Here - Explore the Best Gigs and Take the First Step Toward Your Future!
+                  </p>
                 </div>
-                <div className="flex gap-3">
-                  <WalletTopUp 
-                    trigger={
-                      <Button className="bg-white text-blue-600 hover:bg-blue-50" data-testid="button-fund-wallet">
-                        <Coins className="h-4 w-4 mr-2" />
-                        Fund Wallet
-                      </Button>
-                    } 
-                  />
-                  <WithdrawalDialog 
-                    trigger={
-                      <Button variant="outline" className="border-white text-blue-400 hover:bg-white/10" data-testid="button-withdraw">
-                        <ArrowUpRight className="h-4 w-4 mr-2" />
-                        Withdraw
-                      </Button>
-                    } 
-                  />
+
+                <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                      placeholder="Search by gig title, keywords..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="pl-12 h-14 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+                      data-testid="search-gigs"
+                    />
+                  </div>
+                  <div className="flex-1 relative">
+                    <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Input
+                      placeholder="Location (e.g., Lagos, Remote)"
+                      value={locationQuery}
+                      onChange={(e) => {
+                        setLocationQuery(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      className="pl-12 h-14 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+                      data-testid="search-location"
+                    />
+                  </div>
+                  <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white" data-testid="search-button">
+                    Search
+                  </Button>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 py-16">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-8">
-                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4" data-testid="dashboard-title">
-                  Over {availableGigs?.length || 0}+ gigs to apply
-                </h1>
-                <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                  Your Next Big Opportunity Starts Right Here - Explore the Best Gigs and Take the First Step Toward Your Future!
-                </p>
-              </div>
-
-              <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    placeholder="Search by gig title, keywords..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="pl-12 h-14 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
-                    data-testid="search-gigs"
-                  />
-                </div>
-                <div className="flex-1 relative">
-                  <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    placeholder="Location (e.g., Lagos, Remote)"
-                    value={locationQuery}
-                    onChange={(e) => {
-                      setLocationQuery(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="pl-12 h-14 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
-                    data-testid="search-location"
-                  />
-                </div>
-                <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white" data-testid="search-button">
-                  Search
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               <div className="lg:col-span-1">
                 <Card className="sticky top-24">
@@ -533,7 +489,7 @@ export default function GigSeekerDashboard() {
               </div>
             </div>
           </div>
-        </div>
+          </>
         )}
 
         {activeTab === "recommendations" && (
