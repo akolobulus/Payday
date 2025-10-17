@@ -18,7 +18,7 @@ import BudgetTracker from "@/components/ui/budget-tracker";
 import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
 import DashboardHeader from "@/components/navigation/dashboard-header";
 import DashboardOverview from "@/components/dashboard/dashboard-overview";
-import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, Coins, Video, PhoneCall, Wallet, ArrowUpRight, ChevronLeft, ChevronRight, Building2 } from "lucide-react";
+import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, Coins, Video, PhoneCall, Wallet, ArrowUpRight, ChevronLeft, ChevronRight, Building2, MessageSquare } from "lucide-react";
 import { AudioPlayer } from "@/components/ui/audio-recorder";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
@@ -679,19 +679,22 @@ export default function GigSeekerDashboard() {
         </div>
         )}
 
-        {activeTab === "chat" && (
+        {activeTab === "conversations" && (
           <div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">Messages</CardTitle>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <MessageSquare className="h-6 w-6" />
+                  Conversations
+                </CardTitle>
                 <CardDescription className="text-base">
-                  Chat with gig posters about your applications
+                  Chat and video call with gig posters about your applications
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Your chat conversations will appear here once you apply to gigs.
+                  Your conversations and video call history will appear here once you apply to gigs.
                 </p>
               </CardContent>
             </Card>

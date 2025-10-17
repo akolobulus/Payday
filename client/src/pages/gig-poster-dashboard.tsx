@@ -21,7 +21,7 @@ import BudgetTracker from "@/components/ui/budget-tracker";
 import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
 import DashboardHeader from "@/components/navigation/dashboard-header";
 import DashboardOverview from "@/components/dashboard/dashboard-overview";
-import { Plus, Briefcase, Users, TrendingUp, Coins, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Briefcase, Users, TrendingUp, Coins, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
 import { AudioRecorder } from "@/components/ui/audio-recorder";
 import { GigApplicationsDialog } from "@/components/ui/gig-applications-dialog";
 import { useForm } from "react-hook-form";
@@ -786,19 +786,22 @@ export default function GigPosterDashboard() {
           </>
         )}
 
-        {activeTab === "chat" && (
+        {activeTab === "conversations" && (
           <div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-2xl">Messages</CardTitle>
+                  <CardTitle className="text-2xl flex items-center gap-2">
+                    <MessageSquare className="h-6 w-6" />
+                    Conversations
+                  </CardTitle>
                   <CardDescription className="text-base">
-                    Chat with gig seekers about your posted gigs
+                    Chat and video call with gig seekers about your posted gigs
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-gray-600 dark:text-gray-400">
-                    Your chat conversations will appear here once candidates apply to your gigs.
+                    Your conversations and video call history will appear here once candidates apply to your gigs.
                   </p>
                 </CardContent>
               </Card>

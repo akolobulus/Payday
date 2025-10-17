@@ -53,7 +53,7 @@ const seekerMenuItems = [
   { id: 'ai-assistant', label: 'Zee AI Assistant', icon: Bot, tooltip: 'Chat with Zee for career advice & gig suggestions' },
   { id: 'profile', label: 'Profile', icon: MessageSquare, tooltip: 'Your profile' },
   { id: 'financial', label: 'Wallet', icon: Wallet, tooltip: 'Manage your wallet' },
-  { id: 'chat', label: 'Messages', icon: Calendar, tooltip: 'Chat with posters' },
+  { id: 'conversations', label: 'Conversations', icon: MessageSquare, tooltip: 'Chat & video with posters' },
   { id: 'analytics', label: 'Analytics', icon: Bookmark, tooltip: 'Your performance' },
 ];
 
@@ -64,7 +64,7 @@ const posterMenuItems = [
   { id: 'ai-assistant', label: 'Zee AI Assistant', icon: Bot, tooltip: 'Chat with Zee for business insights & help' },
   { id: 'profile', label: 'Profile', icon: FolderKanban, tooltip: 'Your profile' },
   { id: 'financial', label: 'Wallet', icon: Wallet, tooltip: 'Manage your wallet' },
-  { id: 'chat', label: 'Messages', icon: MessageSquare, tooltip: 'Chat with seekers' },
+  { id: 'conversations', label: 'Conversations', icon: MessageSquare, tooltip: 'Chat & video with seekers' },
   { id: 'reviews', label: 'Reviews', icon: Calendar, tooltip: 'Gig reviews' },
   { id: 'gamification', label: 'Achievements', icon: Bookmark, tooltip: 'View achievements' },
 ];
