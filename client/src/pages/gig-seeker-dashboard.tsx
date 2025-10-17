@@ -75,7 +75,7 @@ export default function GigSeekerDashboard() {
   });
 
   // Get all applications with comprehensive status history
-  const { data: myApplications } = useQuery<Array<GigApplication & { gig: Gig }>>({
+  const { data: myApplications } = useQuery<Array<{ application: GigApplication; gig: Gig }>>({
     queryKey: ['/api/applications/my-applications']
   });
 
