@@ -9,7 +9,7 @@ import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { WalletBalance, PaymentMethodSetup, WithdrawalDialog, EscrowStatus, formatNaira } from "@/components/ui/payment-components";
 import { WalletTopUp } from "@/components/ui/wallet-topup";
-import { ProfileEdit } from "@/components/ui/profile-edit";
+import { AccountDetails } from "@/components/ui/account-details";
 import GamificationDashboard from "@/components/ui/gamification-dashboard";
 import AIAssistant from "@/components/ui/ai-assistant";
 import ZeroBrokeMode from "@/components/ui/zero-broke-mode";
@@ -818,11 +818,7 @@ export default function GigSeekerDashboard() {
         )}
 
         {activeTab === "profile" && (
-          <div>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <ProfileEdit />
-            </div>
-          </div>
+          <AccountDetails />
         )}
 
         {activeTab === "analytics" && (
