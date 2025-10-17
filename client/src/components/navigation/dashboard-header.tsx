@@ -1,4 +1,4 @@
-import { Search, Bell, Wallet, Users } from "lucide-react";
+import { Search, Bell, Wallet } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,18 +7,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { useLocation } from "wouter";
-import { useToast } from "@/hooks/use-toast";
 
 interface DashboardHeaderProps {
   userName?: string;
@@ -39,24 +27,6 @@ export default function DashboardHeader({
   onNotificationsClick,
   onSearch,
 }: DashboardHeaderProps) {
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-
-  const logoutMutation = useMutation({
-    mutationFn: () => apiRequest('/api/auth/logout', 'POST'),
-    onSuccess: () => {
-      toast({
-        title: "Logged out",
-        description: "Please login again to access a different dashboard",
-      });
-      setLocation('/');
-    },
-  });
-
-  const handleSwitchDashboard = (dashboardType: 'seeker' | 'poster') => {
-    logoutMutation.mutate();
-  };
-
   return (
     <header className="sticky top-0 z-30 w-full bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8">
       <div className="flex items-center justify-between h-16 sm:h-20">
@@ -74,38 +44,8 @@ export default function DashboardHeader({
           </div>
         </div>
 
-        {/* Right Section: Dashboard Switcher, Wallet, Avatar, Notifications */}
+        {/* Right Section: Wallet, Avatar, Notifications */}
         <div className="flex items-center gap-2 sm:gap-4 ml-4">
-          {/* Dashboard Type Switcher */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative hover:bg-gray-100"
-                data-testid="button-dashboard-switcher"
-              >
-                <Users className="h-5 w-5 text-gray-600" />
-                <span className="sr-only">Switch Dashboard</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuLabel>Switch Dashboard</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => handleSwitchDashboard('seeker')}
-                data-testid="menu-item-gig-seeker"
-              >
-                Login as Gig Seeker
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => handleSwitchDashboard('poster')}
-                data-testid="menu-item-gig-poster"
-              >
-                Login as Gig Poster
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
 
           {/* Wallet */}
           <TooltipProvider>

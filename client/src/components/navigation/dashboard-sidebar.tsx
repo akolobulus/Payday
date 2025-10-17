@@ -17,7 +17,8 @@ import {
   Home,
   ChevronDown,
   Package,
-  Wallet
+  Wallet,
+  Users
 } from "lucide-react";
 import {
   Tooltip,
@@ -25,6 +26,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -161,6 +170,48 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
 
           {/* Footer Actions */}
           <div className="border-t border-gray-200 p-4 space-y-2">
+            {/* Dashboard Switcher */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+                    text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  data-testid="sidebar-dashboard-switcher"
+                >
+                  <Users className="h-5 w-5" />
+                  <span>Switch Dashboard</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" side="right" className="w-56">
+                <DropdownMenuLabel>Switch Dashboard</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => {
+                    logoutMutation.mutate();
+                    toast({
+                      title: "Logged out",
+                      description: "Login as Gig Seeker to continue",
+                    });
+                  }}
+                  data-testid="menu-item-gig-seeker"
+                >
+                  Login as Gig Seeker
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => {
+                    logoutMutation.mutate();
+                    toast({
+                      title: "Logged out",
+                      description: "Login as Gig Poster to continue",
+                    });
+                  }}
+                  data-testid="menu-item-gig-poster"
+                >
+                  Login as Gig Poster
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
