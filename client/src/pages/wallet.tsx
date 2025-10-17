@@ -18,7 +18,7 @@ import type { User, Wallet as WalletType, Transaction } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 export default function WalletPage() {
-  const [activeTab, setActiveTab] = useState("wallet");
+  const [activeTab, setActiveTab] = useState("financial");
   const [showBalance, setShowBalance] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();

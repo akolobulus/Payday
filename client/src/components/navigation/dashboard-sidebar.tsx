@@ -59,7 +59,7 @@ const posterMenuItems = [
 
 export default function DashboardSidebar({ activeTab, onTabChange, userType }: DashboardSidebarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
 
   const menuItems = userType === 'seeker' ? seekerMenuItems : posterMenuItems;
@@ -80,6 +80,10 @@ export default function DashboardSidebar({ activeTab, onTabChange, userType }: D
       setLocation('/wallet');
       setIsMobileMenuOpen(false);
     } else {
+      const dashboardRoute = userType === 'seeker' ? '/dashboard/seeker' : '/dashboard/poster';
+      if (location === '/wallet') {
+        setLocation(dashboardRoute);
+      }
       onTabChange(tabId);
       setIsMobileMenuOpen(false);
     }
