@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import paydayLogoPath from "@assets/20250819_104458-removebg-preview_1755623157202.png";
 
 interface NavbarProps {
   onOpenLogin: () => void;
@@ -28,12 +27,7 @@ export default function Navbar({ onOpenLogin, onOpenSignup }: NavbarProps) {
           {/* Logo */}
           <Link href="/" asChild>
             <div className="flex items-center cursor-pointer" data-testid="link-home">
-              <img 
-                src={paydayLogoPath} 
-                alt="Payday Logo" 
-                className="w-10 h-10 sm:w-12 sm:h-12"
-              />
-              <span className="ml-2 text-lg sm:text-xl font-bold text-payday-blue hidden sm:inline">Payday</span>
+              <span className="text-xl sm:text-2xl font-bold text-payday-blue">Payday</span>
             </div>
           </Link>
 
