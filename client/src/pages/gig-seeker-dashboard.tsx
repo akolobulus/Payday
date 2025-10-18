@@ -50,9 +50,9 @@ export default function GigSeekerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({
-    category: "",
-    locationCountry: "",
-    locationState: "",
+    category: "all",
+    locationCountry: "all",
+    locationState: "all",
     skills: [] as string[],
   });
   const [skillsPopoverOpen, setSkillsPopoverOpen] = useState(false);
@@ -162,7 +162,7 @@ export default function GigSeekerDashboard() {
 
   // Memoize available states based on selected country
   const availableStates = useMemo(() => {
-    if (!filters.locationCountry) return [];
+    if (!filters.locationCountry || filters.locationCountry === "all") return [];
     const grouped = getGroupedStatesForCountry(filters.locationCountry);
     if (grouped) {
       return grouped;
@@ -177,18 +177,18 @@ export default function GigSeekerDashboard() {
         gig.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         gig.description.toLowerCase().includes(searchQuery.toLowerCase());
       
-      const matchesCategory = filters.category === "" || 
+      const matchesCategory = filters.category === "" || filters.category === "all" || 
         gig.category === filters.category;
       
       // Location matching with backwards compatibility
       let matchesLocation = true;
-      if (filters.locationCountry || filters.locationState) {
+      if (filters.locationCountry && filters.locationCountry !== "all") {
         const gigLocation = gig.location.toLowerCase();
         
-        if (filters.locationState) {
+        if (filters.locationState && filters.locationState !== "all") {
           // If state is selected, match by state
           matchesLocation = gigLocation.includes(filters.locationState.toLowerCase());
-        } else if (filters.locationCountry) {
+        } else {
           // If only country is selected, match by:
           // 1. Country name itself, OR
           // 2. Any state within that country
@@ -227,9 +227,9 @@ export default function GigSeekerDashboard() {
 
   const clearAllFilters = () => {
     setFilters({
-      category: "",
-      locationCountry: "",
-      locationState: "",
+      category: "all",
+      locationCountry: "all",
+      locationState: "all",
       skills: [],
     });
     setSearchQuery("");
@@ -333,7 +333,7 @@ export default function GigSeekerDashboard() {
                 <Card className="sticky top-24">
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Filters</CardTitle>
-                    {(filters.category || filters.locationCountry || filters.skills.length > 0) && (
+                    {(filters.category !== "all" || filters.locationCountry !== "all" || filters.skills.length > 0) && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -361,7 +361,7 @@ export default function GigSeekerDashboard() {
                           <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="" data-testid="category-all">All Categories</SelectItem>
+                          <SelectItem value="all" data-testid="category-all">All Categories</SelectItem>
                           {GIG_CATEGORIES.map((cat) => (
                             <SelectItem key={cat.value} value={cat.value} data-testid={`category-${cat.value}`}>
                               {cat.label}
@@ -390,7 +390,7 @@ export default function GigSeekerDashboard() {
                             <SelectValue placeholder="Select Country" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="" data-testid="country-all">All Countries</SelectItem>
+                            <SelectItem value="all" data-testid="country-all">All Countries</SelectItem>
                             {COUNTRIES.map((country) => (
                               <SelectItem key={country} value={country} data-testid={`country-${country}`}>
                                 {country}
@@ -411,7 +411,7 @@ export default function GigSeekerDashboard() {
                             <SelectValue placeholder={filters.locationCountry ? "Select State/Region" : "Select country first"} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="" data-testid="state-all">All States/Regions</SelectItem>
+                            <SelectItem value="all" data-testid="state-all">All States/Regions</SelectItem>
                             {typeof availableStates === 'object' && !Array.isArray(availableStates) ? (
                               // Grouped states (like Nigeria with zones)
                               Object.entries(availableStates).map(([zone, states]) => (
