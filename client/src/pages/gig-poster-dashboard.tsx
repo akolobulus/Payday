@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
@@ -21,7 +24,7 @@ import BudgetTracker from "@/components/ui/budget-tracker";
 import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
 import DashboardHeader from "@/components/navigation/dashboard-header";
 import DashboardOverview from "@/components/dashboard/dashboard-overview";
-import { Plus, Briefcase, Users, TrendingUp, Coins, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
+import { Plus, Briefcase, Users, TrendingUp, Coins, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight, MessageSquare, X } from "lucide-react";
 import { AudioRecorder } from "@/components/ui/audio-recorder";
 import { GigApplicationsDialog } from "@/components/ui/gig-applications-dialog";
 import { useForm } from "react-hook-form";
@@ -32,9 +35,12 @@ import { useToast } from "@/hooks/use-toast";
 import { insertGigSchema } from "@shared/schema";
 import type { User, Gig, InsertGig } from "@shared/schema";
 import { z } from "zod";
+import { GIG_CATEGORIES, COUNTRIES, getStatesForCountry, getGroupedStatesForCountry, SKILL_CATEGORIES } from "@shared/constants";
 
-const gigFormSchema = insertGigSchema.extend({
-  skillsRequiredText: z.string().min(1, "Please enter required skills"),
+const gigFormSchema = insertGigSchema.omit({ location: true, skillsRequired: true }).extend({
+  locationCountry: z.string().min(1, "Please select a country"),
+  locationState: z.string().min(1, "Please select a state/region"),
+  selectedSkills: z.array(z.string()).min(1, "Please select at least one skill"),
 });
 
 type GigFormData = z.infer<typeof gigFormSchema>;
@@ -47,6 +53,7 @@ export default function GigPosterDashboard() {
   const { toast } = useToast();
   const itemsPerPage = 6;
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [skillsPopoverOpen, setSkillsPopoverOpen] = useState(false);
   
   const { data: user } = useQuery<User>({
     queryKey: ['/api/user/profile']
@@ -77,17 +84,31 @@ export default function GigPosterDashboard() {
       description: "",
       budget: 0,
       category: "",
-      location: "",
+      locationCountry: "",
+      locationState: "",
       urgency: "medium",
       estimatedDuration: "",
-      skillsRequiredText: "",
+      selectedSkills: [],
     },
   });
 
+  // Memoize available states based on selected country
+  const availableStates = useMemo(() => {
+    const country = form.watch("locationCountry");
+    if (!country) return [];
+    const grouped = getGroupedStatesForCountry(country);
+    if (grouped) {
+      return grouped;
+    }
+    return getStatesForCountry(country);
+  }, [form.watch("locationCountry")]);
+
   const createGigMutation = useMutation({
     mutationFn: async (data: GigFormData) => {
-      const { skillsRequiredText, ...gigData } = data;
-      const skillsRequired = skillsRequiredText.split(',').map(s => s.trim()).filter(Boolean);
+      const { locationCountry, locationState, selectedSkills, ...gigData } = data;
+      
+      // Serialize location as "Country | State" or just state for backwards compatibility
+      const location = locationState || locationCountry;
       
       let audioDescriptionUrl = null;
       if (audioBlob) {
@@ -96,7 +117,8 @@ export default function GigPosterDashboard() {
       
       return apiRequest('/api/gigs', 'POST', {
         ...gigData,
-        skillsRequired,
+        location,
+        skillsRequired: selectedSkills,
         audioDescriptionUrl,
       });
     },
@@ -388,16 +410,11 @@ export default function GigPosterDashboard() {
                                     </SelectTrigger>
                                   </FormControl>
                                   <SelectContent>
-                                    <SelectItem value="delivery">Delivery</SelectItem>
-                                    <SelectItem value="tutoring">Tutoring</SelectItem>
-                                    <SelectItem value="cleaning">Cleaning</SelectItem>
-                                    <SelectItem value="data-entry">Data Entry</SelectItem>
-                                    <SelectItem value="social-media">Social Media</SelectItem>
-                                    <SelectItem value="photography">Photography</SelectItem>
-                                    <SelectItem value="content-creation">Content Creation</SelectItem>
-                                    <SelectItem value="customer-service">Customer Service</SelectItem>
-                                    <SelectItem value="handyman">Handyman</SelectItem>
-                                    <SelectItem value="event-assistance">Event Assistance</SelectItem>
+                                    {GIG_CATEGORIES.map((cat) => (
+                                      <SelectItem key={cat.value} value={cat.value}>
+                                        {cat.label}
+                                      </SelectItem>
+                                    ))}
                                   </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -429,33 +446,163 @@ export default function GigPosterDashboard() {
                           />
                         </div>
 
-                        <FormField
-                          control={form.control}
-                          name="location"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Location</FormLabel>
-                              <FormControl>
-                                <Input placeholder="Jos, Plateau or Remote" {...field} data-testid="gig-location-input" />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="locationCountry"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Country</FormLabel>
+                                <Select 
+                                  onValueChange={(value) => {
+                                    field.onChange(value);
+                                    form.setValue("locationState", ""); // Reset state when country changes
+                                  }} 
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger data-testid="gig-country-select">
+                                      <SelectValue placeholder="Select country" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {COUNTRIES.map((country) => (
+                                      <SelectItem key={country} value={country}>
+                                        {country}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="locationState"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>State/Region</FormLabel>
+                                <Select 
+                                  onValueChange={field.onChange} 
+                                  defaultValue={field.value}
+                                  disabled={!form.watch("locationCountry")}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger data-testid="gig-state-select">
+                                      <SelectValue placeholder={form.watch("locationCountry") ? "Select state/region" : "Select country first"} />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {typeof availableStates === 'object' && !Array.isArray(availableStates) ? (
+                                      // Grouped states (like Nigeria with zones)
+                                      Object.entries(availableStates).map(([zone, states]) => (
+                                        <SelectGroup key={zone}>
+                                          <SelectLabel>{zone}</SelectLabel>
+                                          {states.map((state) => (
+                                            <SelectItem key={state} value={state}>
+                                              {state}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectGroup>
+                                      ))
+                                    ) : Array.isArray(availableStates) ? (
+                                      // Simple array of states
+                                      availableStates.map((state) => (
+                                        <SelectItem key={state} value={state}>
+                                          {state}
+                                        </SelectItem>
+                                      ))
+                                    ) : null}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
 
                         <FormField
                           control={form.control}
-                          name="skillsRequiredText"
+                          name="selectedSkills"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Required Skills</FormLabel>
+                              <FormDescription>
+                                Select the skills required for this gig
+                              </FormDescription>
                               <FormControl>
-                                <Input 
-                                  placeholder="photography, editing, social media (comma separated)"
-                                  {...field} 
-                                  data-testid="gig-skills-input"
-                                />
+                                <Popover open={skillsPopoverOpen} onOpenChange={setSkillsPopoverOpen}>
+                                  <PopoverTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      role="combobox"
+                                      aria-expanded={skillsPopoverOpen}
+                                      className="w-full justify-between text-left font-normal"
+                                      data-testid="gig-skills-select"
+                                    >
+                                      {field.value.length > 0
+                                        ? `${field.value.length} skill${field.value.length > 1 ? 's' : ''} selected`
+                                        : "Select skills..."}
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[400px] p-0" align="start">
+                                    <Command>
+                                      <CommandInput placeholder="Search skills..." />
+                                      <CommandList>
+                                        <CommandEmpty>No skill found.</CommandEmpty>
+                                        {Object.entries(SKILL_CATEGORIES).map(([category, skills]) => (
+                                          <CommandGroup key={category} heading={category}>
+                                            {skills.map((skill) => (
+                                              <CommandItem
+                                                key={skill}
+                                                value={skill}
+                                                onSelect={() => {
+                                                  const newValue = field.value.includes(skill)
+                                                    ? field.value.filter((s) => s !== skill)
+                                                    : [...field.value, skill];
+                                                  field.onChange(newValue);
+                                                }}
+                                              >
+                                                <div className="flex items-center gap-2 flex-1">
+                                                  <Checkbox
+                                                    checked={field.value.includes(skill)}
+                                                    className="pointer-events-none"
+                                                  />
+                                                  <span className="text-sm">{skill}</span>
+                                                </div>
+                                              </CommandItem>
+                                            ))}
+                                          </CommandGroup>
+                                        ))}
+                                      </CommandList>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
                               </FormControl>
+                              {field.value.length > 0 && (
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  {field.value.map((skill) => (
+                                    <Badge
+                                      key={skill}
+                                      variant="secondary"
+                                      className="text-xs"
+                                    >
+                                      {skill}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          field.onChange(field.value.filter((s) => s !== skill));
+                                        }}
+                                        className="ml-1 hover:text-destructive"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
                               <FormMessage />
                             </FormItem>
                           )}

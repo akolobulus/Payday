@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { ReviewForm, UserRating } from "@/components/ui/review-components";
 import CompletionConfirmation from "@/components/ui/completion-confirmation";
 import { WalletBalance, PaymentMethodSetup, WithdrawalDialog, EscrowStatus, formatNaira } from "@/components/ui/payment-components";
@@ -18,12 +21,13 @@ import BudgetTracker from "@/components/ui/budget-tracker";
 import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
 import DashboardHeader from "@/components/navigation/dashboard-header";
 import DashboardOverview from "@/components/dashboard/dashboard-overview";
-import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, Coins, Video, PhoneCall, Wallet, ArrowUpRight, ChevronLeft, ChevronRight, Building2, MessageSquare } from "lucide-react";
+import { Search, MapPin, Clock, Star, TrendingUp, Briefcase, Coins, Video, PhoneCall, Wallet, ArrowUpRight, ChevronLeft, ChevronRight, Building2, MessageSquare, X, Check } from "lucide-react";
 import { AudioPlayer } from "@/components/ui/audio-recorder";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Gig, GigApplication } from "@shared/schema";
+import { GIG_CATEGORIES, COUNTRIES, getStatesForCountry, getGroupedStatesForCountry, SKILL_CATEGORIES } from "@shared/constants";
 
 interface JobMatchResult {
   score: number;
@@ -42,21 +46,16 @@ interface GigRecommendation {
   skillsRequired: string[];
 }
 
-const CATEGORIES = [
-  "delivery", "tutoring", "cleaning", "data-entry", "social-media",
-  "photography", "content-creation", "customer-service", "handyman", "event-assistance"
-];
-
-const LOCATIONS = [
-  "Lagos", "Abuja", "Jos", "Kano", "Port Harcourt", "Ibadan", "Remote"
-];
-
 export default function GigSeekerDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
-  const [locationQuery, setLocationQuery] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+  const [filters, setFilters] = useState({
+    category: "",
+    locationCountry: "",
+    locationState: "",
+    skills: [] as string[],
+  });
+  const [skillsPopoverOpen, setSkillsPopoverOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -161,18 +160,54 @@ export default function GigSeekerDashboard() {
     }
   };
 
-  const filteredGigs = availableGigs?.filter(gig => {
-    const matchesSearch = gig.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      gig.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesLocation = locationQuery === "" || 
-      gig.location.toLowerCase().includes(locationQuery.toLowerCase());
-    const matchesCategory = selectedCategories.length === 0 || 
-      selectedCategories.includes(gig.category);
-    const matchesLocationFilter = selectedLocations.length === 0 || 
-      selectedLocations.some(loc => gig.location.toLowerCase().includes(loc.toLowerCase()));
-    
-    return matchesSearch && matchesLocation && matchesCategory && matchesLocationFilter;
-  }) || [];
+  // Memoize available states based on selected country
+  const availableStates = useMemo(() => {
+    if (!filters.locationCountry) return [];
+    const grouped = getGroupedStatesForCountry(filters.locationCountry);
+    if (grouped) {
+      return grouped;
+    }
+    return getStatesForCountry(filters.locationCountry);
+  }, [filters.locationCountry]);
+
+  // Memoize filtered gigs
+  const filteredGigs = useMemo(() => {
+    return availableGigs?.filter(gig => {
+      const matchesSearch = searchQuery === "" ||
+        gig.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        gig.description.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = filters.category === "" || 
+        gig.category === filters.category;
+      
+      // Location matching with backwards compatibility
+      let matchesLocation = true;
+      if (filters.locationCountry || filters.locationState) {
+        const gigLocation = gig.location.toLowerCase();
+        
+        if (filters.locationState) {
+          // If state is selected, match by state
+          matchesLocation = gigLocation.includes(filters.locationState.toLowerCase());
+        } else if (filters.locationCountry) {
+          // If only country is selected, match by:
+          // 1. Country name itself, OR
+          // 2. Any state within that country
+          const countryMatch = gigLocation.includes(filters.locationCountry.toLowerCase());
+          const statesInCountry = getStatesForCountry(filters.locationCountry);
+          const stateMatch = statesInCountry.some(state => 
+            gigLocation.includes(state.toLowerCase())
+          );
+          matchesLocation = countryMatch || stateMatch;
+        }
+      }
+      
+      // Skills matching
+      const matchesSkills = filters.skills.length === 0 ||
+        filters.skills.some(skill => gig.skillsRequired.includes(skill));
+      
+      return matchesSearch && matchesCategory && matchesLocation && matchesSkills;
+    }) || [];
+  }, [availableGigs, searchQuery, filters]);
 
   const totalPages = Math.ceil(filteredGigs.length / itemsPerPage);
   const paginatedGigs = filteredGigs.slice(
@@ -180,21 +215,24 @@ export default function GigSeekerDashboard() {
     currentPage * itemsPerPage
   );
 
-  const toggleCategory = (category: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
+  const toggleSkill = (skill: string) => {
+    setFilters(prev => ({
+      ...prev,
+      skills: prev.skills.includes(skill)
+        ? prev.skills.filter(s => s !== skill)
+        : [...prev.skills, skill]
+    }));
     setCurrentPage(1);
   };
 
-  const toggleLocation = (location: string) => {
-    setSelectedLocations(prev =>
-      prev.includes(location)
-        ? prev.filter(l => l !== location)
-        : [...prev, location]
-    );
+  const clearAllFilters = () => {
+    setFilters({
+      category: "",
+      locationCountry: "",
+      locationState: "",
+      skills: [],
+    });
+    setSearchQuery("");
     setCurrentPage(1);
   };
 
@@ -273,36 +311,18 @@ export default function GigSeekerDashboard() {
                   </p>
                 </div>
 
-                <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto">
-                  <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                      placeholder="Search by gig title, keywords..."
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      className="pl-12 h-14 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
-                      data-testid="search-gigs"
-                    />
-                  </div>
-                  <div className="flex-1 relative">
-                    <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <Input
-                      placeholder="Location (e.g., Lagos, Remote)"
-                      value={locationQuery}
-                      onChange={(e) => {
-                        setLocationQuery(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      className="pl-12 h-14 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
-                      data-testid="search-location"
-                    />
-                  </div>
-                  <Button className="h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white" data-testid="search-button">
-                    Search
-                  </Button>
+                <div className="relative max-w-4xl mx-auto">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Input
+                    placeholder="Search by gig title, keywords, description..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="pl-12 h-14 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+                    data-testid="search-gigs"
+                  />
                 </div>
               </div>
             </div>
@@ -311,52 +331,178 @@ export default function GigSeekerDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               <div className="lg:col-span-1">
                 <Card className="sticky top-24">
-                  <CardHeader>
+                  <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle>Filters</CardTitle>
+                    {(filters.category || filters.locationCountry || filters.skills.length > 0) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearAllFilters}
+                        className="h-8 px-2 text-xs"
+                        data-testid="clear-filters"
+                      >
+                        <X className="w-3 h-3 mr-1" />
+                        Clear
+                      </Button>
+                    )}
                   </CardHeader>
                   <CardContent className="space-y-6">
+                    {/* Category Filter */}
                     <div>
-                      <h4 className="font-semibold mb-4 text-sm">Search by Categories</h4>
+                      <h4 className="font-semibold mb-3 text-sm text-gray-900 dark:text-white">Category</h4>
+                      <Select
+                        value={filters.category}
+                        onValueChange={(value) => {
+                          setFilters(prev => ({ ...prev, category: value }));
+                          setCurrentPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="w-full" data-testid="filter-category">
+                          <SelectValue placeholder="All Categories" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="" data-testid="category-all">All Categories</SelectItem>
+                          {GIG_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat.value} value={cat.value} data-testid={`category-${cat.value}`}>
+                              {cat.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Location Filter - Hierarchical */}
+                    <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                      <h4 className="font-semibold mb-3 text-sm text-gray-900 dark:text-white">Location</h4>
                       <div className="space-y-3">
-                        {CATEGORIES.map((category) => (
-                          <div key={category} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`cat-${category}`}
-                              checked={selectedCategories.includes(category)}
-                              onCheckedChange={() => toggleCategory(category)}
-                              data-testid={`filter-category-${category}`}
-                            />
-                            <label
-                              htmlFor={`cat-${category}`}
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 capitalize cursor-pointer"
-                            >
-                              {category.replace('-', ' ')}
-                            </label>
-                          </div>
-                        ))}
+                        <Select
+                          value={filters.locationCountry}
+                          onValueChange={(value) => {
+                            setFilters(prev => ({ 
+                              ...prev, 
+                              locationCountry: value,
+                              locationState: "" // Reset state when country changes
+                            }));
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <SelectTrigger className="w-full" data-testid="filter-country">
+                            <SelectValue placeholder="Select Country" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="" data-testid="country-all">All Countries</SelectItem>
+                            {COUNTRIES.map((country) => (
+                              <SelectItem key={country} value={country} data-testid={`country-${country}`}>
+                                {country}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <Select
+                          value={filters.locationState}
+                          onValueChange={(value) => {
+                            setFilters(prev => ({ ...prev, locationState: value }));
+                            setCurrentPage(1);
+                          }}
+                          disabled={!filters.locationCountry}
+                        >
+                          <SelectTrigger className="w-full" data-testid="filter-state">
+                            <SelectValue placeholder={filters.locationCountry ? "Select State/Region" : "Select country first"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="" data-testid="state-all">All States/Regions</SelectItem>
+                            {typeof availableStates === 'object' && !Array.isArray(availableStates) ? (
+                              // Grouped states (like Nigeria with zones)
+                              Object.entries(availableStates).map(([zone, states]) => (
+                                <SelectGroup key={zone}>
+                                  <SelectLabel>{zone}</SelectLabel>
+                                  {states.map((state) => (
+                                    <SelectItem key={state} value={state} data-testid={`state-${state}`}>
+                                      {state}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              ))
+                            ) : Array.isArray(availableStates) ? (
+                              // Simple array of states
+                              availableStates.map((state) => (
+                                <SelectItem key={state} value={state} data-testid={`state-${state}`}>
+                                  {state}
+                                </SelectItem>
+                              ))
+                            ) : null}
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
 
+                    {/* Skills Filter */}
                     <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <h4 className="font-semibold mb-4 text-sm">Search by Location</h4>
-                      <div className="space-y-3">
-                        {LOCATIONS.map((location) => (
-                          <div key={location} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`loc-${location}`}
-                              checked={selectedLocations.includes(location)}
-                              onCheckedChange={() => toggleLocation(location)}
-                              data-testid={`filter-location-${location}`}
-                            />
-                            <label
-                              htmlFor={`loc-${location}`}
-                              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      <h4 className="font-semibold mb-3 text-sm text-gray-900 dark:text-white">Skills Required</h4>
+                      <Popover open={skillsPopoverOpen} onOpenChange={setSkillsPopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={skillsPopoverOpen}
+                            className="w-full justify-between text-left font-normal"
+                            data-testid="filter-skills"
+                          >
+                            {filters.skills.length > 0
+                              ? `${filters.skills.length} skill${filters.skills.length > 1 ? 's' : ''} selected`
+                              : "Select skills..."}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[300px] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search skills..." />
+                            <CommandList>
+                              <CommandEmpty>No skill found.</CommandEmpty>
+                              {Object.entries(SKILL_CATEGORIES).map(([category, skills]) => (
+                                <CommandGroup key={category} heading={category}>
+                                  {skills.map((skill) => (
+                                    <CommandItem
+                                      key={skill}
+                                      value={skill}
+                                      onSelect={() => toggleSkill(skill)}
+                                      data-testid={`skill-${skill}`}
+                                    >
+                                      <div className="flex items-center gap-2 flex-1">
+                                        <Checkbox
+                                          checked={filters.skills.includes(skill)}
+                                          className="pointer-events-none"
+                                        />
+                                        <span className="text-sm">{skill}</span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              ))}
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      {filters.skills.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {filters.skills.map((skill) => (
+                            <Badge
+                              key={skill}
+                              variant="secondary"
+                              className="text-xs"
+                              data-testid={`selected-skill-${skill}`}
                             >
-                              {location}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
+                              {skill}
+                              <button
+                                onClick={() => toggleSkill(skill)}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
