@@ -298,21 +298,21 @@ export default function GigPosterDashboard() {
 
         {activeTab === "my-gigs" && (
           <>
-          <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-800 dark:to-gray-900 py-12">
+          <div className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-800 dark:to-gray-900 py-8 sm:py-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2" data-testid="dashboard-title">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2" data-testid="dashboard-title">
                     Welcome back, {user?.firstName}! 💼
                   </h1>
-                  <p className="text-lg text-gray-600 dark:text-gray-300">
+                  <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300">
                     Manage your gigs and find the perfect talent for your tasks.
                   </p>
                 </div>
                 
                 <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-green-600 hover:bg-green-700 text-white h-12 px-6" data-testid="create-gig-button">
+                    <Button className="bg-green-600 hover:bg-green-700 text-white h-12 px-6 w-full sm:w-auto shrink-0" data-testid="create-gig-button">
                       <Plus className="h-5 w-5 mr-2" />
                       Post New Gig
                     </Button>
@@ -641,51 +641,51 @@ export default function GigPosterDashboard() {
             </div>
           </div>
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Gigs Posted</CardTitle>
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Total Gigs Posted</CardTitle>
+                  <Briefcase className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold" data-testid="total-gigs">
+                <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold" data-testid="total-gigs">
                     {myGigs?.length || 0}
                   </div>
                 </CardContent>
               </Card>
               
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Gigs</CardTitle>
-                  <Eye className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Active Gigs</CardTitle>
+                  <Eye className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold" data-testid="active-gigs">
+                <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold" data-testid="active-gigs">
                     {myGigs?.filter(g => g.status === 'open' || g.status === 'assigned').length || 0}
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Completed Gigs</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Completed Gigs</CardTitle>
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold" data-testid="completed-gigs">
+                <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold" data-testid="completed-gigs">
                     {myGigs?.filter(g => g.status === 'completed').length || 0}
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-                  <Coins className="h-4 w-4 text-muted-foreground" />
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 sm:p-6 sm:pb-2">
+                  <CardTitle className="text-xs sm:text-sm font-medium">Total Spent</CardTitle>
+                  <Coins className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
                 </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold" data-testid="total-spent">
+                <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
+                  <div className="text-xl sm:text-2xl font-bold" data-testid="total-spent">
                     ₦{myGigs?.filter(g => g.status === 'completed')
                       .reduce((sum, g) => sum + g.budget, 0).toLocaleString() || '0'}
                   </div>
@@ -693,10 +693,10 @@ export default function GigPosterDashboard() {
               </Card>
             </div>
 
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Posted Gigs</h2>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">My Posted Gigs</h2>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   Showing {paginatedGigs.length} of {myGigs?.length || 0} gigs
                 </p>
               </div>
@@ -704,35 +704,35 @@ export default function GigPosterDashboard() {
               <div className="space-y-4">
                 {paginatedGigs.map((gig) => (
                   <Card key={gig.id} className="hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
-                    <CardContent className="p-6">
-                      <div className="flex gap-4">
-                        <div className="flex-shrink-0">
+                    <CardContent className="p-4 sm:p-6">
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-shrink-0 hidden sm:block">
                           <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                             <Building2 className="w-8 h-8 text-white" />
                           </div>
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="flex-1">
-                              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-1" data-testid={`gig-title-${gig.id}`}>
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2" data-testid={`gig-title-${gig.id}`}>
                                 {gig.title}
                               </h4>
-                              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                              <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
                                 <div className="flex items-center gap-1">
-                                  <MapPin className="w-4 h-4" />
-                                  <span data-testid={`gig-location-${gig.id}`}>{gig.location}</span>
+                                  <MapPin className="w-4 h-4 shrink-0" />
+                                  <span className="truncate" data-testid={`gig-location-${gig.id}`}>{gig.location}</span>
                                 </div>
-                                <Badge variant={getGigStatusColor(gig.status)}>
+                                <Badge variant={getGigStatusColor(gig.status)} className="shrink-0">
                                   {getGigStatusDisplay(gig.status)}
                                 </Badge>
-                                <Badge variant="outline" className="capitalize">
+                                <Badge variant="outline" className="capitalize shrink-0">
                                   {gig.urgency} Priority
                                 </Badge>
                               </div>
                             </div>
-                            <div className="flex flex-col items-end gap-2">
-                              <div className="text-2xl font-bold text-green-600 dark:text-green-500" data-testid={`gig-budget-${gig.id}`}>
+                            <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+                              <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-500" data-testid={`gig-budget-${gig.id}`}>
                                 ₦{gig.budget.toLocaleString()}
                               </div>
                             </div>
@@ -742,8 +742,8 @@ export default function GigPosterDashboard() {
                             {gig.description}
                           </p>
 
-                          <div className="flex justify-between items-center">
-                            <div className="flex flex-wrap gap-2">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                            <div className="flex flex-wrap gap-2 items-center">
                               {gig.skillsRequired.slice(0, 3).map((skill, index) => (
                                 <Badge key={index} variant="secondary" className="text-xs">
                                   {skill}
@@ -754,8 +754,8 @@ export default function GigPosterDashboard() {
                                   +{gig.skillsRequired.length - 3}
                                 </Badge>
                               )}
-                              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 ml-2">
-                                <Clock className="w-3 h-3" />
+                              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                                <Clock className="w-3 h-3 shrink-0" />
                                 <span data-testid={`gig-duration-${gig.id}`}>{gig.estimatedDuration}</span>
                               </div>
                             </div>
@@ -766,6 +766,7 @@ export default function GigPosterDashboard() {
                                 size="sm"
                                 onClick={() => updateGigStatusMutation.mutate({ gigId: gig.id, status: 'cancelled' })}
                                 disabled={updateGigStatusMutation.isPending}
+                                className="w-full sm:w-auto"
                                 data-testid={`cancel-gig-${gig.id}`}
                               >
                                 Cancel Gig
@@ -775,9 +776,9 @@ export default function GigPosterDashboard() {
 
                           {gig.status === 'has_applications' && (
                             <div className="space-y-2 border-t pt-3 mt-3">
-                              <div className="flex justify-between items-center">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                                 <div className="flex items-center gap-2">
-                                  <Users className="h-4 w-4 text-green-600" />
+                                  <Users className="h-4 w-4 text-green-600 shrink-0" />
                                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     5 Applications Received
                                   </span>
@@ -791,7 +792,7 @@ export default function GigPosterDashboard() {
                                   trigger={
                                     <Button 
                                       size="sm" 
-                                      className="bg-green-600 hover:bg-green-700"
+                                      className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                                       data-testid={`view-applications-${gig.id}`}
                                     >
                                       <Users className="h-4 w-4 mr-2" />
@@ -805,9 +806,9 @@ export default function GigPosterDashboard() {
 
                           {gig.status === 'assigned_pending_funding' && (
                             <div className="space-y-2 border-t pt-3 mt-3">
-                              <div className="flex justify-between items-center">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                                 <div className="flex items-center gap-2">
-                                  <Shield className="h-4 w-4 text-yellow-600" />
+                                  <Shield className="h-4 w-4 text-yellow-600 shrink-0" />
                                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Escrow Payment Required
                                   </span>
@@ -817,7 +818,7 @@ export default function GigPosterDashboard() {
                                   trigger={
                                     <Button 
                                       size="sm" 
-                                      className="bg-green-600 hover:bg-green-700"
+                                      className="bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                                       data-testid={`fund-escrow-${gig.id}`}
                                     >
                                       <Shield className="h-4 w-4 mr-2" />
@@ -831,7 +832,7 @@ export default function GigPosterDashboard() {
 
                           {gig.status === 'assigned' && gig.posterId === user?.id && gig.seekerId && (
                             <div className="space-y-2 border-t pt-3 mt-3">
-                              <div className="flex justify-between items-center">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                                   Video Interview Available
                                 </span>
@@ -839,7 +840,7 @@ export default function GigPosterDashboard() {
                                   size="sm"
                                   onClick={() => createVideoCallMutation.mutate(gig.id)}
                                   disabled={createVideoCallMutation.isPending}
-                                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700 w-full sm:w-auto"
                                   data-testid={`button-start-call-${gig.id}`}
                                 >
                                   <Video className="h-4 w-4" />
@@ -896,22 +897,23 @@ export default function GigPosterDashboard() {
               )}
 
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 mt-8">
+                <div className="flex justify-center items-center gap-1 sm:gap-2 mt-6 sm:mt-8">
                   <Button
                     variant="outline"
                     size="icon"
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
+                    className="h-8 w-8 sm:h-10 sm:w-10"
                     data-testid="pagination-prev"
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <Button
                       key={page}
                       variant={currentPage === page ? "default" : "outline"}
                       onClick={() => setCurrentPage(page)}
-                      className={currentPage === page ? "bg-green-600 hover:bg-green-700" : ""}
+                      className={`h-8 w-8 sm:h-10 sm:w-10 text-xs sm:text-sm ${currentPage === page ? "bg-green-600 hover:bg-green-700" : ""}`}
                       data-testid={`pagination-${page}`}
                     >
                       {page}
@@ -922,9 +924,10 @@ export default function GigPosterDashboard() {
                     size="icon"
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
+                    className="h-8 w-8 sm:h-10 sm:w-10"
                     data-testid="pagination-next"
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
               )}
