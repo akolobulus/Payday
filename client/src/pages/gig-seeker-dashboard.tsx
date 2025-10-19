@@ -300,19 +300,19 @@ export default function GigSeekerDashboard() {
 
         {activeTab === "browse" && (
           <>
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 py-16">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 py-8 sm:py-12 lg:py-16">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-8">
-                  <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4" data-testid="dashboard-title">
+                <div className="text-center mb-6 sm:mb-8">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4" data-testid="dashboard-title">
                     Over {availableGigs?.length || 0}+ gigs to apply
                   </h1>
-                  <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                  <p className="text-sm sm:text-base lg:text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto px-4">
                     Your Next Big Opportunity Starts Right Here - Explore the Best Gigs and Take the First Step Toward Your Future!
                   </p>
                 </div>
 
                 <div className="relative max-w-4xl mx-auto">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                   <Input
                     placeholder="Search by gig title, keywords, description..."
                     value={searchQuery}
@@ -320,15 +320,15 @@ export default function GigSeekerDashboard() {
                       setSearchQuery(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="pl-12 h-14 text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
+                    className="pl-10 sm:pl-12 h-12 sm:h-14 text-sm sm:text-base bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700"
                     data-testid="search-gigs"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
               <div className="lg:col-span-1">
                 <Card className="sticky top-24">
                   <CardHeader className="flex flex-row items-center justify-between">
@@ -508,10 +508,10 @@ export default function GigSeekerDashboard() {
                 </Card>
               </div>
 
-              <div className="lg:col-span-3 space-y-6">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Latest gigs</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="lg:col-span-3 space-y-4 sm:space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">Latest gigs</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                     Showing {paginatedGigs.length} of {filteredGigs.length} gigs
                   </p>
                 </div>
@@ -519,34 +519,34 @@ export default function GigSeekerDashboard() {
                 <div className="space-y-4">
                   {paginatedGigs.map((gig) => (
                     <Card key={gig.id} className="hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700" data-testid={`gig-card-${gig.id}`}>
-                      <CardContent className="p-6">
-                        <div className="flex gap-4">
-                          <div className="flex-shrink-0">
+                      <CardContent className="p-4 sm:p-6">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                          <div className="flex-shrink-0 hidden sm:block">
                             <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
                               <Building2 className="w-8 h-8 text-white" />
                             </div>
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="flex-1">
-                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-1" data-testid={`gig-title-${gig.id}`}>
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-2" data-testid={`gig-title-${gig.id}`}>
                                   {gig.title}
                                 </h4>
-                                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
                                   <div className="flex items-center gap-1">
-                                    <MapPin className="w-4 h-4" />
-                                    <span data-testid={`gig-location-${gig.id}`}>{gig.location}</span>
+                                    <MapPin className="w-4 h-4 shrink-0" />
+                                    <span className="truncate" data-testid={`gig-location-${gig.id}`}>{gig.location}</span>
                                   </div>
                                   <div className="flex items-center gap-1">
-                                    <Badge variant="outline" className="capitalize">
+                                    <Badge variant="outline" className="capitalize shrink-0">
                                       {gig.urgency} Priority
                                     </Badge>
                                   </div>
                                 </div>
                               </div>
-                              <div className="flex flex-col items-end gap-2">
-                                <div className="text-2xl font-bold text-green-600 dark:text-green-500" data-testid={`gig-budget-${gig.id}`}>
+                              <div className="flex flex-col items-start sm:items-end gap-2 shrink-0">
+                                <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-500" data-testid={`gig-budget-${gig.id}`}>
                                   ₦{gig.budget.toLocaleString()}
                                 </div>
                               </div>
@@ -562,8 +562,8 @@ export default function GigSeekerDashboard() {
                               </div>
                             )}
 
-                            <div className="flex justify-between items-center">
-                              <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                              <div className="flex flex-wrap gap-2 items-center">
                                 {gig.skillsRequired.slice(0, 3).map((skill, index) => (
                                   <Badge key={index} variant="secondary" className="text-xs">
                                     {skill}
@@ -574,8 +574,8 @@ export default function GigSeekerDashboard() {
                                     +{gig.skillsRequired.length - 3}
                                   </Badge>
                                 )}
-                                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 ml-2">
-                                  <Clock className="w-3 h-3" />
+                                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 ">
+                                  <Clock className="w-3 h-3 shrink-0" />
                                   <span data-testid={`gig-duration-${gig.id}`}>{gig.estimatedDuration}</span>
                                 </div>
                               </div>
@@ -583,7 +583,7 @@ export default function GigSeekerDashboard() {
                               <Button
                                 onClick={() => applyToGigMutation.mutate(gig.id)}
                                 disabled={applyToGigMutation.isPending}
-                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                                className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
                                 data-testid={`apply-gig-${gig.id}`}
                               >
                                 Apply now
@@ -607,22 +607,23 @@ export default function GigSeekerDashboard() {
                 )}
 
                 {totalPages > 1 && (
-                  <div className="flex justify-center items-center gap-2 mt-8">
+                  <div className="flex justify-center items-center gap-1 sm:gap-2 mt-6 sm:mt-8">
                     <Button
                       variant="outline"
                       size="icon"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
+                      className="h-8 w-8 sm:h-10 sm:w-10"
                       data-testid="pagination-prev"
                     >
-                      <ChevronLeft className="h-4 w-4" />
+                      <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <Button
                         key={page}
                         variant={currentPage === page ? "default" : "outline"}
                         onClick={() => setCurrentPage(page)}
-                        className={currentPage === page ? "bg-blue-600 hover:bg-blue-700" : ""}
+                        className={`h-8 w-8 sm:h-10 sm:w-10 text-xs sm:text-sm ${currentPage === page ? "bg-blue-600 hover:bg-blue-700" : ""}`}
                         data-testid={`pagination-${page}`}
                       >
                         {page}
@@ -633,9 +634,10 @@ export default function GigSeekerDashboard() {
                       size="icon"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
+                      className="h-8 w-8 sm:h-10 sm:w-10"
                       data-testid="pagination-next"
                     >
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 )}
@@ -713,146 +715,70 @@ export default function GigSeekerDashboard() {
         )}
 
         {activeTab === "applications" && (
-          <div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">My Applications</CardTitle>
-                <CardDescription className="text-base">
-                  Track all your gig applications and their status (pending, approved, rejected, completed)
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <div className="space-y-4">
-              {myGigs?.map((gig) => (
-                <Card key={gig.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg" data-testid={`my-gig-title-${gig.id}`}>
-                        {gig.title}
-                      </CardTitle>
-                      <Badge variant={getGigStatusColor(gig.status)}>
-                        {getGigStatusDisplay(gig.status)}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold text-green-600">₦{gig.budget.toLocaleString()}</span>
-                      <span className="text-sm text-gray-500">{gig.estimatedDuration}</span>
-                    </div>
-                    
-                    {['pending_completion', 'awaiting_mutual_confirmation'].includes(gig.status) && (
-                      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                        <div className="flex items-center gap-3">
-                          <Coins className="h-5 w-5 text-yellow-600" />
-                          <div>
-                            <p className="font-semibold text-yellow-900 dark:text-yellow-100">
-                              Pending Payment
-                            </p>
-                            <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300" data-testid={`pending-payment-${gig.id}`}>
-                              ₦{gig.budget.toLocaleString()}
-                            </p>
-                            <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                              Payment will be released once both parties confirm completion
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {gig.status === 'assigned' && gig.seekerId === user?.id && (
-                      <div className="space-y-2 border-t pt-3">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Video Interview Available
-                          </span>
-                          <Button
-                            size="sm"
-                            onClick={() => createVideoCallMutation.mutate(gig.id)}
-                            disabled={createVideoCallMutation.isPending}
-                            className="flex items-center gap-2"
-                            data-testid={`button-start-call-${gig.id}`}
-                          >
-                            <Video className="h-4 w-4" />
-                            <span>{createVideoCallMutation.isPending ? 'Starting...' : 'Start Video Call'}</span>
-                          </Button>
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          Connect with the gig poster to discuss details before starting work
-                        </p>
-                      </div>
-                    )}
-
-                    {['assigned', 'pending_completion', 'awaiting_mutual_confirmation'].includes(gig.status) && user && (
-                      <div className="space-y-2 border-t pt-3">
-                        <CompletionConfirmation 
-                          gig={gig} 
-                          currentUser={user}
-                          onStatusUpdate={() => {
-                            queryClient.invalidateQueries({ queryKey: ['/api/gigs/my-applications'] });
-                            queryClient.invalidateQueries({ queryKey: ['/api/gigs/available'] });
-                          }}
-                        />
-                      </div>
-                    )}
-                    
-                    {gig.status === 'completed' && gig.posterId && (
-                      <div className="space-y-2 border-t pt-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Gig Poster:</span>
-                          <UserRating userId={gig.posterId} size="sm" />
-                        </div>
-                        <ReviewForm 
-                          gig={gig}
-                          revieweeId={gig.posterId}
-                          revieweeName="Gig Poster"
-                          onSuccess={() => {
-                            queryClient.invalidateQueries({ queryKey: ['/api/user', gig.posterId, 'rating'] });
-                          }}
-                        />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {!myGigs?.length && (
-              <Card className="p-12 text-center border-dashed">
-                <Briefcase className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2">No applications yet</h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Start browsing gigs and apply to opportunities that match your skills.
-                </p>
-              </Card>
-            )}
-          </div>
-        </div>
-        )}
-
-        {activeTab === "conversations" && (
-          <div>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <MessageSquare className="h-6 w-6" />
-                  Conversations
-                </CardTitle>
-                <CardDescription className="text-base">
-                  Chat and video call with gig posters about your applications
+                <CardTitle className="text-xl sm:text-2xl">My Applications</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
+                  Track all your gig applications and their status
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Your conversations and video call history will appear here once you apply to gigs.
-                </p>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="inline-block min-w-full align-middle">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                      <thead className="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Job Title</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Skill</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expected Pay</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">Applied On</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr data-testid="my-application-1">
+                          <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">Poster Design for Campus Event</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">Graphic Design</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-500">₦5,000</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">Oct 13, 2025</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap"><Badge variant="secondary">Pending</Badge></td>
+                        </tr>
+                        <tr data-testid="my-application-2">
+                          <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">Event Equipment Delivery</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">Delivery & Logistics</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-500">₦3,500</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">Oct 13, 2025</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap"><Badge variant="default" className="bg-green-600">Approved</Badge></td>
+                        </tr>
+                        <tr data-testid="my-application-3">
+                          <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">Math Tutor (Weekend)</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">Tutoring</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-500">₦7,000</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">Oct 12, 2025</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap"><Badge variant="destructive">Declined</Badge></td>
+                        </tr>
+                        <tr data-testid="my-application-4">
+                          <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">Product Photography</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">Photography</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-500">₦10,000</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">Oct 12, 2025</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap"><Badge variant="secondary">Pending</Badge></td>
+                        </tr>
+                        <tr data-testid="my-application-5">
+                          <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">Instagram Page Manager</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">Social Media</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-500">₦8,000</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">Oct 11, 2025</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap"><Badge variant="default" className="bg-green-600">Approved</Badge></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
-        </div>
         )}
 
         {activeTab === "video-calls" && (

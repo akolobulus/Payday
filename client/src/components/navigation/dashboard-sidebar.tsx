@@ -60,6 +60,7 @@ const seekerMenuItems = [
 const posterMenuItems = [
   { id: 'overview', label: 'Overview', icon: Grid, tooltip: 'Dashboard overview' },
   { id: 'my-gigs', label: 'My Gigs', icon: Package, tooltip: 'View and manage your gigs' },
+  { id: 'applications', label: 'Applications', icon: Users, tooltip: 'View all gig applications' },
   { id: 'analytics', label: 'Analytics', icon: Store, tooltip: 'View analytics' },
   { id: 'ai-assistant', label: 'Zee AI Assistant', icon: Bot, tooltip: 'Chat with Zee for business insights & help' },
   { id: 'profile', label: 'Profile', icon: FolderKanban, tooltip: 'Your profile' },

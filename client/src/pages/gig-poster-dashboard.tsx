@@ -24,7 +24,7 @@ import BudgetTracker from "@/components/ui/budget-tracker";
 import DashboardSidebar from "@/components/navigation/dashboard-sidebar";
 import DashboardHeader from "@/components/navigation/dashboard-header";
 import DashboardOverview from "@/components/dashboard/dashboard-overview";
-import { Plus, Briefcase, Users, TrendingUp, Coins, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight, MessageSquare, X } from "lucide-react";
+import { Plus, Briefcase, Users, TrendingUp, Coins, MapPin, Clock, Eye, Star, Video, PhoneCall, Wallet, Shield, Building2, ChevronLeft, ChevronRight, MessageSquare, X, Check } from "lucide-react";
 import { AudioRecorder } from "@/components/ui/audio-recorder";
 import { GigApplicationsDialog } from "@/components/ui/gig-applications-dialog";
 import { useForm } from "react-hook-form";
@@ -934,6 +934,125 @@ export default function GigPosterDashboard() {
             </div>
           </div>
           </>
+        )}
+
+
+        {activeTab === "applications" && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-xl sm:text-2xl">All Applications</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
+                  View and manage applications from gig seekers
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto -mx-4 sm:mx-0">
+                  <div className="inline-block min-w-full align-middle">
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                      <thead className="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Applicant</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Skill</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden md:table-cell">Job Title</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expected Pay</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider hidden sm:table-cell">Applied On</th>
+                          <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr data-testid="application-row-1">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Sarah Johnson</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Graphic Design</td>
+                          <td className="px-3 sm:px-6 py-4 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">Poster Design for Campus Event</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-500">₦5,000</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">Oct 13, 2025</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                            <Button size="sm" variant="default" className="bg-green-600 hover:bg-green-700" data-testid="accept-btn-1">
+                              <Check className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Accept</span>
+                            </Button>
+                            <Button size="sm" variant="destructive" data-testid="reject-btn-1">
+                              <X className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Reject</span>
+                            </Button>
+                          </td>
+                        </tr>
+                        <tr data-testid="application-row-2">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">David Okeke</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Delivery & Logistics</td>
+                          <td className="px-3 sm:px-6 py-4 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">Event Equipment Delivery</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-500">₦3,500</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">Oct 13, 2025</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                            <Button size="sm" variant="default" className="bg-green-600 hover:bg-green-700" data-testid="accept-btn-2">
+                              <Check className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Accept</span>
+                            </Button>
+                            <Button size="sm" variant="destructive" data-testid="reject-btn-2">
+                              <X className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Reject</span>
+                            </Button>
+                          </td>
+                        </tr>
+                        <tr data-testid="application-row-3">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Blessing Yusuf</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Tutoring</td>
+                          <td className="px-3 sm:px-6 py-4 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">Math Tutor (Weekend)</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-500">₦7,000</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">Oct 13, 2025</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                            <Button size="sm" variant="default" className="bg-green-600 hover:bg-green-700" data-testid="accept-btn-3">
+                              <Check className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Accept</span>
+                            </Button>
+                            <Button size="sm" variant="destructive" data-testid="reject-btn-3">
+                              <X className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Reject</span>
+                            </Button>
+                          </td>
+                        </tr>
+                        <tr data-testid="application-row-4">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Emmanuel Bassey</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Photography</td>
+                          <td className="px-3 sm:px-6 py-4 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">Product Photography</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-500">₦10,000</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">Oct 13, 2025</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                            <Button size="sm" variant="default" className="bg-green-600 hover:bg-green-700" data-testid="accept-btn-4">
+                              <Check className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Accept</span>
+                            </Button>
+                            <Button size="sm" variant="destructive" data-testid="reject-btn-4">
+                              <X className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Reject</span>
+                            </Button>
+                          </td>
+                        </tr>
+                        <tr data-testid="application-row-5">
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">Grace Adewale</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">Social Media</td>
+                          <td className="px-3 sm:px-6 py-4 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">Instagram Page Manager</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 dark:text-green-500">₦8,000</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">Oct 13, 2025</td>
+                          <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm space-x-2">
+                            <Button size="sm" variant="default" className="bg-green-600 hover:bg-green-700" data-testid="accept-btn-5">
+                              <Check className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Accept</span>
+                            </Button>
+                            <Button size="sm" variant="destructive" data-testid="reject-btn-5">
+                              <X className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Reject</span>
+                            </Button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {activeTab === "conversations" && (
