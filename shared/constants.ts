@@ -1,4 +1,4 @@
-// Comprehensive 
+// Comprehensiv
 export const SKILL_CATEGORIES = {
   "Art & Creative": [
     "Graphic Design",
