@@ -1,4 +1,4 @@
-// Comprehensive skcategorsor t arketplace
+// Comprehensive skcategorsor tketplace
 export const SKILL_CATEGORIES = {
   "Art & Creative": [
     "Graphic Design",
