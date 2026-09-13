@@ -1,4 +1,4 @@
-// Comprehensive skcategors for the gig marketplace
+// Comprehensive skcategorsor the gig marketplace
 export const SKILL_CATEGORIES = {
   "Art & Creative": [
     "Graphic Design",
