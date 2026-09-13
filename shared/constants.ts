@@ -1,4 +1,4 @@
-// Comprehensive skcategorsor the gig arketplace
+// Comprehensive skcategorsor tgig arketplace
 export const SKILL_CATEGORIES = {
   "Art & Creative": [
     "Graphic Design",
