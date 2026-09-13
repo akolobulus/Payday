@@ -1,4 +1,4 @@
-// Comprehensive skcategorsor
+// Comprehensive skcategor
 export const SKILL_CATEGORIES = {
   "Art & Creative": [
     "Graphic Design",
