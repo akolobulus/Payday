@@ -1,4 +1,4 @@
-//helloe i am about to writwe 20 r commi
+//helloe i am about to writwe 20 r comm
 # Payday - End Your Broke Days Forever
 
 ## 🚀 Executive Summary
