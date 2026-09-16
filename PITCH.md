@@ -1,4 +1,4 @@
-//helloe i am abou
+//helloe i am abo
 # Payday - End Your Broke Days Forever
 
 ## 🚀 Executive Summary
