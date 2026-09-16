@@ -1,4 +1,4 @@
-//h
+//
 # Payday - End Your Broke Days Forever
 
 ## 🚀 Executive Summary
