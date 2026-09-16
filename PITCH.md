@@ -1,4 +1,4 @@
-//helloe i am about to writwe 20 r commits
+//helloe i am about to writwe 20 r commit
 # Payday - End Your Broke Days Forever
 
 ## 🚀 Executive Summary
