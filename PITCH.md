@@ -1,4 +1,4 @@
-//helloe i am about to writ
+//helloe i am about to wri
 # Payday - End Your Broke Days Forever
 
 ## 🚀 Executive Summary
