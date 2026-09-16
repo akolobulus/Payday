@@ -1,4 +1,4 @@
-//helloe i
+//helloe
 # Payday - End Your Broke Days Forever
 
 ## 🚀 Executive Summary
